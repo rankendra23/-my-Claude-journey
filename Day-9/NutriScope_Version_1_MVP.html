@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NutriScope — Version 1 MVP</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{--bg:#07111f;--card:#0d1a2b;--card2:#112239;--text:#eef6ff;--muted:#91a4bb;--line:#20344e;--green:#35e0a1;--blue:#4e8cff;--purple:#a77cff;--orange:#ffb84d;--red:#ff667d}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 20% 0%,#102746 0,#07111f 40%,#050b14 100%);color:var(--text);font:14px Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+.app{display:grid;grid-template-columns:270px 1fr;min-height:100vh}.side{padding:24px;border-right:1px solid var(--line);background:#071321;position:sticky;top:0;height:100vh}.brand{font-size:25px;font-weight:800;margin-bottom:28px}.brand span{color:var(--green)}.nav a{display:block;color:var(--muted);text-decoration:none;padding:12px 14px;border-radius:12px;margin:5px 0}.nav a.active,.nav a:hover{background:#12304b;color:#fff}.main{padding:28px;max-width:1500px;width:100%;margin:auto}.top{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:22px}.top h1{margin:0;font-size:30px}.pill{padding:8px 12px;border:1px solid var(--line);border-radius:999px;color:var(--green);background:#0b1e2d}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}.card{background:linear-gradient(145deg,#0e1c2e,#0a1625);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 12px 35px #0004}.span4{grid-column:span 4}.span6{grid-column:span 6}.span8{grid-column:span 8}.span12{grid-column:span 12}
+.card h2{margin:0 0 14px;font-size:17px}.muted{color:var(--muted)}label{display:block;color:#b9c9da;font-size:12px;margin-bottom:6px}input,select{width:100%;padding:11px 12px;background:#081524;border:1px solid var(--line);border-radius:10px;color:#fff;outline:none}input:focus,select:focus{border-color:var(--blue)}
+.form{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.btn{border:0;border-radius:11px;padding:11px 15px;color:#04100c;background:var(--green);font-weight:800;cursor:pointer}.btn.secondary{background:#17314d;color:#dcecff}.actions{display:flex;gap:8px;flex-wrap:wrap}
+.metric{font-size:27px;font-weight:800}.small{font-size:12px;color:var(--muted)}.progress{height:9px;background:#16283c;border-radius:99px;overflow:hidden;margin:10px 0}.progress i{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--blue));border-radius:99px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.stat{padding:13px;background:#091827;border:1px solid var(--line);border-radius:13px}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:11px;border-bottom:1px solid var(--line)}th{color:#9eb1c7;font-size:12px}td{font-size:13px}.tag{padding:4px 8px;border-radius:99px;background:#12334a;color:#aee8ff}.danger{color:#ff8a9b}.good{color:#55e3ad}.warn{color:#ffd074}
+.foodrow{display:grid;grid-template-columns:1.5fr .8fr .8fr auto;gap:8px;margin-bottom:9px}.empty{padding:25px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:12px}
+@media(max-width:950px){.app{grid-template-columns:1fr}.side{position:static;height:auto}.nav{display:flex;overflow:auto;gap:6px}.nav a{white-space:nowrap}.span4,.span6,.span8{grid-column:span 12}.stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.main{padding:16px}.form{grid-template-columns:1fr}.stats{grid-template-columns:1fr}.foodrow{grid-template-columns:1fr 1fr}.foodrow button{grid-column:span 2}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="side">
+<div class="brand">Nutri<span>Scope</span></div>
+<div class="nav">
+<a class="active" href="#dashboard">Dashboard</a><a href="#profile">Profile</a><a href="#food">Food Log</a><a href="#recommend">Recommendations</a>
+</div>
+</aside>
+<main class="main">
+<div class="top"><div><h1>Nutrition Dashboard</h1><div class="muted">Version 1 · MVP Nutrition Tracker</div></div><div class="pill">Local • No Backend</div></div>
+<div class="grid">
+<section class="card span4" id="profile"><h2>Nutrition Profile</h2>
+<div class="form">
+<div><label>Age</label><input id="age" type="number" value="21" min="1"></div>
+<div><label>Gender</label><select id="gender"><option>Male</option><option>Female</option></select></div>
+<div><label>Height (cm)</label><input id="height" type="number" value="175"></div>
+<div><label>Weight (kg)</label><input id="weight" type="number" value="65"></div>
+<div><label>Activity</label><select id="activity"><option value="1.2">Sedentary</option><option value="1.375">Lightly Active</option><option value="1.55" selected>Moderately Active</option><option value="1.725">Very Active</option><option value="1.9">Extra Active</option></select></div>
+<div><label>Diet</label><select id="diet"><option>Vegetarian</option><option>Non-Vegetarian</option><option>Eggetarian</option></select></div>
+</div></section>
+
+<section class="card span8" id="dashboard"><h2>Daily Energy Progress</h2><div class="stats">
+<div class="stat"><div class="small">Target</div><div class="metric" id="targetCal">0</div><div class="small">kcal</div></div>
+<div class="stat"><div class="small">Consumed</div><div class="metric" id="consCal">0</div><div class="small">kcal</div></div>
+<div class="stat"><div class="small">Protein</div><div class="metric" id="protein">0g</div></div>
+<div class="stat"><div class="small">Fiber</div><div class="metric" id="fiber">0g</div></div>
+</div><div class="progress"><i id="calBar" style="width:0%"></i></div><div class="small" id="calText">0% of calorie target</div></section>
+
+<section class="card span6"><h2>Macro Distribution</h2><canvas id="macroChart" height="240"></canvas></section>
+<section class="card span6"><h2>Micronutrient Completion</h2><canvas id="microChart" height="240"></canvas></section>
+
+<section class="card span12" id="food"><h2>Food Logging</h2>
+<div class="foodrow">
+<select id="foodSelect"></select><input id="qty" type="number" value="1" min=".1" step=".1"><select id="unit"><option>serving</option><option>100g</option><option>50g</option></select><button class="btn" onclick="addFood()">Add Food</button>
+</div>
+<div id="foodTable"></div>
+</section>
+
+<section class="card span12" id="recommend"><h2>Recommendations</h2><div id="recommendations" class="muted">Add foods and update your profile to see suggestions.</div></section>
+</div>
+</main></div>
+
+<script>
+const foods={
+Rice:[130,2.7,28,0.3,0.4,0.2,10,12,35,0.5,0,0,0,0.1,8],Roti:[297,9.6,55,3.7,11,3.9,29,82,260,1.5,0,0,0,0.7,45],
+Dal:[116,9,20,0.4,7.9,3.3,19,36,369,1.3,1.5,0,0,0.5,181],Paneer:[265,18.3,6.1,20.8,0,0.2,208,8,138,2.2,0,21,1.2,0.2,6],
+Curd:[61,3.5,4.7,3.3,0,0.1,121,12,155,0.5,0,0.1,0.5,0.1,7],Chana:[164,8.9,27.4,2.6,7.6,2.9,49,48,291,1.5,1.3,0,0,0.8,172],
+Rajma:[127,8.7,22.8,0.5,6.4,2.9,28,45,405,2.8,4.5,0,0,0.1,130],Banana:[89,1.1,22.8,0.3,2.6,0.3,5,27,358,0.2,8.7,0,0,0.1,20],
+Apple:[52,0.3,13.8,0.2,2.4,0.1,6,5,107,0,4.6,0,0,0.2,3],Milk:[61,3.2,4.8,3.3,0,0,113,10,132,0.4,0,0.1,0.4,0.1,5],
+Oats:[389,16.9,66.3,6.9,10.6,4.2,54,177,429,4,0,0,0,0.4,56],Bread:[265,9,49,3.2,2.7,3.6,144,82,223,1,0,0,0,0.3,85],
+Egg:[143,12.6,0.7,9.5,0,1.8,56,12,138,1.3,0,2,1.1,1,47],Chicken:[239,27.3,0,13.6,0,1.3,15,25,223,2.4,0,0.2,0.3,0.3,6],
+Fish:[206,22,0,12,0,0.8,15,30,384,0.5,0,10,2.4,2,15],Potato:[77,2,17.5,0.1,2.2,0.8,12,23,425,0.3,19.7,0,0,0.1,15],
+Poha:[180,3,35,3,2,1.5,20,30,100,0.8,5,0,0,0.3,30],Idli:[146,4.5,28,1,2,1.5,20,25,90,0.7,0,0,0,0.1,35],
+Dosa:[168,4,30,3,1.5,1.5,20,35,100,0.8,0,0,0,0.2,35],Spinach:[23,2.9,3.6,0.4,2.2,2.7,99,79,558,0.5,28.1,0,0,2,194]
+};
+const targets={protein:90,carbs:300,fat:70,fiber:30,iron:12,calcium:1000,vitC:75,vitD:15,b12:2.4};
+let log=[{food:"Oats",q:1,u:"100g"},{food:"Banana",q:1,u:"serving"},{food:"Dal",q:1,u:"100g"},{food:"Rice",q:1,u:"100g"},{food:"Curd",q:1,u:"100g"}];
+let macroChart,microChart;
+function calc(){let a=+age.value,h=+height.value,w=+weight.value,m=gender.value==="Male";let bmr=10*w+6.25*h-5*a+(m?5:-161);return bmr*+activity.value}
+function factor(u){return u==="50g"?.5:1}
+function totals(){let t={cal:0,protein:0,carbs:0,fat:0,fiber:0,iron:0,calcium:0,vitC:0,vitD:0,b12:0};log.forEach(x=>{let d=foods[x.food],f=x.q*factor(x.u);t.cal+=d[0]*f;t.protein+=d[1]*f;t.carbs+=d[2]*f;t.fat+=d[3]*f;t.fiber+=d[4]*f;t.iron+=d[5]*f;t.calcium+=d[6]*f;t.vitC+=d[10]*f;t.vitD+=d[11]*f;t.b12+=d[12]*f});return t}
+function renderFoodSelect(){foodSelect.innerHTML=Object.keys(foods).map(x=>`<option>${x}</option>`).join("")}
+function addFood(){log.push({food:foodSelect.value,q:+qty.value||1,u:unit.value});renderAll()}
+function removeFood(i){log.splice(i,1);renderAll()}
+function renderFoodTable(){if(!log.length){foodTable.innerHTML='<div class="empty">No foods logged yet.</div>';return}foodTable.innerHTML='<table><thead><tr><th>Food</th><th>Qty</th><th>Unit</th><th>Calories</th><th></th></tr></thead><tbody>'+log.map((x,i)=>`<tr><td>${x.food}</td><td>${x.q}</td><td>${x.u}</td><td>${Math.round(foods[x.food][0]*x.q*factor(x.u))}</td><td><button class="btn secondary" onclick="removeFood(${i})">Remove</button></td></tr>`).join("")+'</tbody></table>'}
+function renderCharts(){let t=totals();if(macroChart)macroChart.destroy();macroChart=new Chart(document.getElementById("macroChart"),{type:"doughnut",data:{labels:["Protein","Carbs","Fat"],datasets:[{data:[t.protein*4,t.carbs*4,t.fat*9]}]},options:{plugins:{legend:{labels:{color:"#dcecff"}}}}});if(microChart)microChart.destroy();microChart=new Chart(document.getElementById("microChart"),{type:"bar",data:{labels:["Iron","Calcium","Vit C","Vit D","B12"],datasets:[{label:"% target",data:[t.iron/targets.iron*100,t.calcium/targets.calcium*100,t.vitC/targets.vitC*100,t.vitD/targets.vitD*100,t.b12/targets.b12*100]}]},options:{scales:{x:{ticks:{color:"#91a4bb"}},y:{ticks:{color:"#91a4bb"},beginAtZero:true,max:100}},plugins:{legend:{display:false}}}})}
+function recommendations(){let t=totals(),r=[];if(t.protein<targets.protein)r.push("Increase protein with paneer, dal, eggs or chicken.");if(t.fiber<targets.fiber)r.push("Add fiber-rich foods such as spinach, chana, fruit or oats.");if(t.calcium<targets.calcium)r.push("Consider milk, curd or paneer for calcium.");if(t.vitC<targets.vitC)r.push("Add vitamin-C-rich fruit such as guava, orange or citrus foods.");if(!r.length)r.push("Your logged nutrients are broadly meeting the starter targets. Keep portions balanced.");recommendations.innerHTML=r.map(x=>`<div style="padding:10px 0;border-bottom:1px solid var(--line)">💡 ${x}</div>`).join("")}
+function renderAll(){let t=totals(),target=calc(),pct=Math.min(100,t.cal/target*100);targetCal.textContent=Math.round(target);consCal.textContent=Math.round(t.cal);protein.textContent=t.protein.toFixed(1)+"g";fiber.textContent=t.fiber.toFixed(1)+"g";calBar.style.width=pct+"%";calText.textContent=Math.round(pct)+"% of calorie target";renderFoodTable();renderCharts();recommendations()}
+[age,height,weight,gender,activity,diet].forEach(e=>e.addEventListener("input",renderAll));[gender,activity,diet].forEach(e=>e.addEventListener("change",renderAll));renderFoodSelect();renderAll();
+</script>
+</body>
+</html>
