@@ -1,0 +1,50 @@
+<div style="max-width:640px;margin:0 auto;background:#F5EFE6;border:1px solid #D9CBB4;border-radius:16px;padding:28px 32px;font-family:var(--font-sans)">
+  <p style="font-size:13px;color:#8A6D46;letter-spacing:0.5px;margin:0 0 4px;text-transform:uppercase">Job red flag detector</p>
+  <h2 style="margin:0 0 20px;color:#3D2B1A">Junior full stack developer — risk report</h2>
+
+  <div style="display:flex;align-items:center;gap:20px;background:#3D2B1A;border-radius:12px;padding:20px 24px;margin-bottom:24px">
+    <div style="font-family:var(--font-voice);font-size:48px;font-weight:500;color:#F0E4D0;line-height:1">87</div>
+    <div>
+      <p style="margin:0;font-size:14px;color:#E8D9BE">Overall risk score / 100</p>
+      <p style="margin:4px 0 0;font-size:13px;color:#C9A876">Verdict: Avoid</p>
+    </div>
+  </div>
+
+  <p style="font-size:13px;color:#8A6D46;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 10px">Risk breakdown</p>
+  <div id="bars" style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px"></div>
+
+  <p style="font-size:13px;color:#8A6D46;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 10px">Top red flags by severity</p>
+  <div id="flags" style="display:flex;flex-direction:column;gap:8px"></div>
+</div>
+<script>
+const bars = [
+  {label:'Requirements', val:95},
+  {label:'Culture', val:90},
+  {label:'Remote authenticity', val:80},
+  {label:'Hiring practices', val:80},
+  {label:'Company stability', val:75}
+];
+document.getElementById('bars').innerHTML = bars.map(b => `
+  <div>
+    <div style="display:flex;justify-content:space-between;font-size:13px;color:#3D2B1A;margin-bottom:3px">
+      <span>${b.label}</span><span style="color:#8A6D46">${b.val}</span>
+    </div>
+    <div style="background:#E8D9BE;border-radius:6px;height:10px;overflow:hidden">
+      <div style="width:${b.val}%;height:100%;background:#B5652D;border-radius:6px"></div>
+    </div>
+  </div>`).join('');
+
+const flags = [
+  {t:'"Junior" role demanding 5+ years experience', s:9},
+  {t:'Full-stack + multi-cloud + K8s + AI/ML overload', s:9},
+  {t:'24/7 support expected from a junior hire', s:9},
+  {t:'Hustle-culture language ("family", "thrive under pressure")', s:8},
+  {t:'"Remote" with hidden relocation clause', s:8},
+  {t:'No salary range disclosed', s:7}
+];
+document.getElementById('flags').innerHTML = flags.map(f => `
+  <div style="display:flex;align-items:center;gap:10px;background:#FFFDF9;border:1px solid #E8D9BE;border-radius:8px;padding:8px 12px">
+    <div style="min-width:26px;height:26px;border-radius:50%;background:#B5652D;color:#FFF3E6;font-size:12px;font-weight:500;display:flex;align-items:center;justify-content:center">${f.s}</div>
+    <span style="font-size:13px;color:#3D2B1A">${f.t}</span>
+  </div>`).join('');
+</script>
