@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>E85 Fuel Dashboard · Maruti Suzuki Dezire</title>
+<style>
+:root{--bg:#0a0f1e;--tx:#e8ecf8;--mu:#8b95b5;--gl:rgba(255,255,255,.06);--bd:rgba(255,255,255,.12);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:radial-gradient(1200px 600px at 10% -10%,#16244d55,transparent),radial-gradient(900px 500px at 100% 0,#f5a62318,transparent),var(--bg);color:var(--tx);font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:16px}
+.w{max-width:1440px;margin:auto}
+.g{background:var(--gl);border:1px solid var(--bd);border-radius:16px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);padding:16px;box-shadow:0 8px 30px #0006}
+h1{font-size:clamp(16px,3.4vw,26px);margin:0;letter-spacing:.2px}h2{font-size:15px;margin:0 0 10px}
+.hd{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:16px}
+.tag{color:var(--mu);font-size:12px}
+.kp{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
+.k .l{color:var(--mu);font-size:11px;text-transform:uppercase;letter-spacing:.6px}.k .v{font-size:clamp(20px,3vw,28px);font-weight:700;margin:4px 0}.k .s{font-size:11.5px;color:var(--mu)}
+.r2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:12px;margin-bottom:16px}
+svg{width:100%;height:auto;display:block}svg text{fill:var(--mu);font-size:11px;font-family:inherit}
+.lg{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--mu);margin-top:8px}.lg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px}
+.ov{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:12px;margin-top:10px}th,td{padding:6px 8px;text-align:center;border-bottom:1px solid var(--bd);white-space:nowrap}th{color:var(--mu);font-weight:600}td:first-child,th:first-child{text-align:left}.me{background:#f5a62322;color:#fff}
+.gauge{display:flex;flex-direction:column;align-items:center;text-align:center}
+.arc{fill:none;stroke-width:16;stroke-linecap:round}.arc.f{animation:fill 1.6s ease-out both}
+@keyframes fill{from{stroke-dasharray:0 100}}
+.vd{max-width:560px;font-size:14px;margin-top:6px}
+.fc{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.c{position:relative;border-top:3px solid var(--c);transition:.2s}.c h3{margin:0 0 8px;color:var(--c);font-size:16px}
+.c.on{box-shadow:0 0 0 1px var(--c),0 0 28px -2px var(--c);background:linear-gradient(180deg,rgba(255,255,255,.1),var(--gl))}
+.c .b{position:absolute;top:10px;right:10px;font-size:10px;background:var(--c);color:#000;border-radius:99px;padding:2px 8px;font-weight:700}
+.c ul{list-style:none;padding:0;margin:0 0 8px}.c li{margin:4px 0;font-size:12.5px}
+.bf{font-size:12px;color:var(--mu);border-top:1px dashed var(--bd);padding-top:8px}
+#tt{position:fixed;pointer-events:none;background:#000d;border:1px solid var(--bd);padding:6px 9px;border-radius:8px;font-size:12px;opacity:0;transition:opacity .1s;z-index:9;max-width:220px}
+[data-t]{cursor:pointer}
+@media(max-width:480px){body{padding:10px}.g{padding:12px}}
+</style></head><body><div class="w">
+<div class="hd g"><h1 id="hd"></h1><span class="tag">Source: day17_e85_dataset_optimised.csv · <span id="nr"></span> trips</span></div>
+<div class="kp" id="kp"></div>
+<div class="r2">
+ <div class="g"><h2>Cost per km (₹) by fuel</h2><svg id="bar" viewBox="0 0 420 260"></svg></div>
+ <div class="g"><h2>CO₂ per km (kg) by fuel</h2><svg id="dn" viewBox="0 0 420 260"></svg><div class="lg" id="lg"></div></div>
+</div>
+<div class="r2">
+ <div class="g"><h2>Cost/km vs vehicle age <span class="tag">(trend fit from CSV · dashed = beyond observed ages)</span></h2><svg id="ln" viewBox="0 0 600 300"></svg></div>
+ <div class="g"><h2>Age buckets · Cost/km ₹ | Maint/km ₹</h2><div class="ov"><table id="bk"></table></div><div class="tag" id="bn" style="margin-top:8px"></div></div>
+</div>
+<div class="g gauge" style="margin-bottom:16px"><h2>E85 score / 10 <span class="tag">(cost 4 · CO₂ 3 · refuel 2 · maint 1)</span></h2>
+ <svg id="ga" viewBox="0 0 240 150" style="max-width:320px"></svg><div class="vd" id="vd"></div></div>
+<div class="fc" id="fc"></div>
+</div><div id="tt"></div>
+<script>
+const CFG={veh:'Maruti Suzuki Dezire',fuel:'Diesel',age:2,km:10000};
+const RAW=[["CNG",7,1316,4600,167.3,904,8,80,22.9],["Diesel",4,2343,10201,399.9,1270,5,91,20.9],["CNG",2,1450,4464,181.5,730,8,80,26.0],["Electric (EV)",3,2457,4468,218.5,346,45,12,6.6],["CNG",3,970,3144,116.7,712,8,80,24.7],["CNG",3,1094,3544,136.3,823,8,80,24.7],["Petrol (E20)",4,1294,7570,213.8,702,5,100,17.1],["Diesel",4,1348,5870,230.1,958,5,91,20.9],["Electric (EV)",1,1142,1957,106.0,319,45,12,7.0],["Petrol (E20)",8,1673,10590,290.1,867,5,100,15.8],["Diesel",3,2448,10656,415.4,970,5,91,20.9],["E85 (Flex-Fuel)",1,1067,6732,77.9,646,5,82,13.0],["E85 (Flex-Fuel)",1,2749,17343,184.3,568,5,82,13.0],["E85 (Flex-Fuel)",1,1686,10635,112.5,573,5,82,13.0],["Electric (EV)",2,903,1548,85.2,253,45,12,7.0],["Electric (EV)",1,2774,4756,259.2,322,45,12,7.0],["CNG",6,1585,5536,201.4,1114,8,80,22.9],["Diesel",6,1502,7043,276.8,1323,5,91,19.4],["Electric (EV)",4,1115,2027,101.9,362,45,12,6.6],["Diesel",6,962,4514,181.4,1332,5,91,19.4],["E85 (Flex-Fuel)",2,925,5838,62.4,530,5,82,13.0],["Diesel",12,951,5032,172.3,1550,5,91,17.2],["CNG",4,1191,3856,150.2,841,8,80,24.7],["E85 (Flex-Fuel)",1,1586,10004,112.7,630,5,82,13.0],["Electric (EV)",2,1188,2036,103.8,297,45,12,7.0],["Petrol (E20)",8,1540,9750,266.5,702,5,100,15.8],["Petrol (E20)",7,3105,19650,519.1,727,5,100,15.8],["E85 (Flex-Fuel)",2,1614,10184,109.8,661,5,82,13.0],["CNG",3,1534,4968,190.9,764,8,80,24.7],["Petrol (E20)",5,1513,8850,260.1,684,5,100,17.1],["Petrol (E20)",7,3119,19740,560.6,698,5,100,15.8],["Petrol (E20)",3,959,5610,151.4,655,5,100,17.1],["Electric (EV)",1,1496,2564,128.5,272,45,12,7.0],["Diesel",9,1333,6252,231.7,1524,5,91,19.4],["E85 (Flex-Fuel)",1,1491,9405,106.1,663,5,82,13.0],["E85 (Flex-Fuel)",2,1633,10299,111.1,626,5,82,13.0],["CNG",8,2523,8816,308.1,1097,8,80,22.9],["Petrol (E20)",7,1116,7060,195.3,718,5,100,15.8],["Petrol (E20)",6,1598,10110,280.9,750,5,100,15.8],["E85 (Flex-Fuel)",1,1003,6330,72.6,542,5,82,13.0],["E85 (Flex-Fuel)",3,1504,10029,105.4,763,5,82,12.3],["Electric (EV)",4,1063,1933,102.2,397,45,12,6.6],["CNG",6,951,3320,126.4,939,8,80,22.9],["Electric (EV)",1,1371,2351,128.0,258,45,12,7.0],["CNG",5,1299,4208,159.9,792,8,80,24.7],["Electric (EV)",1,1579,2707,138.8,320,45,12,7.0],["Diesel",11,1452,7680,282.4,1728,5,91,17.2],["Electric (EV)",3,1654,3007,151.9,375,45,12,6.6],["E85 (Flex-Fuel)",3,1289,8594,93.9,837,5,82,12.3],["Petrol (E20)",7,2361,14940,419.4,731,5,100,15.8],["Petrol (E20)",5,1031,6030,164.2,614,5,100,17.1],["Diesel",4,972,4232,170.0,1131,5,91,20.9]];
+const F=[['E85','E85 (Flex-Fuel)','#f5a623'],['Petrol','Petrol (E20)','#3b82f6'],['Diesel','Diesel','#9ca3af'],['CNG','CNG','#22c55e'],['EV','Electric (EV)','#a855f7']];
+const rows=RAW.map(r=>({f:r[0],a:r[1],d:r[2],c:r[3],co:r[4],m:r[5],rf:r[6],p:r[7],ml:r[8]}));
+const $=id=>document.getElementById(id),mean=a=>a.reduce((x,y)=>x+y,0)/a.length,f2=n=>n.toFixed(2),f1=n=>n.toFixed(1);
+const B=[['New','0–2y',0,2],['Mid-life','3–5y',3,5],['Aged','6–9y',6,9],['Old','10+y',10,99]];
+const S={};
+F.forEach(([k,n,col])=>{const r=rows.filter(x=>x.f===n);const s={k,n,col,r};
+ s.cpk=mean(r.map(x=>x.c/x.d));s.co2=mean(r.map(x=>x.co/x.d));s.mpk=mean(r.map(x=>x.m/x.d));
+ s.rf=mean(r.map(x=>x.rf));s.pr=mean(r.map(x=>x.p));s.ml=mean(r.map(x=>x.ml));
+ const ag=r.map(x=>x.a),ys=r.map(x=>x.c/x.d),ma=mean(ag),my=mean(ys);
+ let sx=0,sy=0;r.forEach((x,i)=>{sx+=(ag[i]-ma)*(ys[i]-my);sy+=(ag[i]-ma)**2});
+ s.sl=sy?sx/sy:0;s.ic=my-s.sl*ma;s.amin=Math.min(...ag);s.amax=Math.max(...ag);
+ s.bk=B.map(b=>{const q=r.filter(x=>x.a>=b[2]&&x.a<=b[3]);return q.length?{c:mean(q.map(x=>x.c/x.d)),m:mean(q.map(x=>x.m/x.d)),n:q.length}:null});
+ S[k]=s});
+const E=S.E85,P=S.Petrol,Y=S[CFG.fuel==='Diesel'?'Diesel':CFG.fuel];
+const saving=(P.pr-E.pr)/P.pr*100,pen=(E.cpk-P.cpk)/P.cpk*100,be=E.ml/P.ml*P.pr;
+const monthly=Y.cpk*CFG.km,monthlyE=E.cpk*CFG.km;
+const inr=n=>'₹'+Math.round(n).toLocaleString('en-IN');
+$('hd').textContent=`${CFG.veh} · ${CFG.fuel} · Age:${CFG.age}y · ${CFG.km.toLocaleString('en-IN')}km/mo`;
+$('nr').textContent=rows.length;
+// KPIs
+const K=[[`Your ${CFG.fuel} cost/km`,'₹'+f2(Y.cpk),`Maint ₹${f2(Y.mpk)}/km`,Y.col],
+['E85 cost/km','₹'+f2(E.cpk),`Pump price ${inr(E.pr)}/L, ${f1(saving)}% below petrol`,E.col],
+['E85 premium vs Petrol',(pen>=0?'+':'')+f1(pen)+'%',`Petrol ₹${f2(P.cpk)}/km · pump saving ${f1(saving)}%`,pen>0?'#ef4444':'#22c55e'],
+['E85 break-even price','₹'+f1(be)+'/L',`Now ₹${f1(E.pr)} → needs ${E.pr>be?'−₹'+f1(E.pr-be):'no cut'}`,E.col],
+['Your monthly fuel cost',inr(monthly),`E85 would be ${inr(monthlyE)} (${monthlyE>monthly?'+':'−'}${inr(Math.abs(monthlyE-monthly))})`,'#38bdf8']];
+$('kp').innerHTML=K.map(k=>`<div class="g k" style="border-top:3px solid ${k[3]}"><div class="l">${k[0]}</div><div class="v" style="color:${k[3]}">${k[1]}</div><div class="s">${k[2]}</div></div>`).join('');
+// tooltip
+const tt=$('tt');
+document.addEventListener('mousemove',e=>{const t=e.target.closest&&e.target.closest('[data-t]');if(t){tt.innerHTML=t.dataset.t;tt.style.opacity=1;tt.style.left=Math.min(e.clientX+12,innerWidth-230)+'px';tt.style.top=(e.clientY+12)+'px'}else tt.style.opacity=0});
+// bar chart
+(()=>{const mx=Math.max(...F.map(f=>S[f[0]].cpk))*1.15,W=420,H=260,pl=34,pb=34,bw=52,gap=(W-pl-bw*5)/6;
+let h='';for(let i=0;i<=4;i++){const y=H-pb-(H-pb-16)*i/4;h+=`<line x1="${pl}" x2="${W}" y1="${y}" y2="${y}" stroke="#fff2"/><text x="${pl-5}" y="${y+4}" text-anchor="end">${f1(mx*i/4)}</text>`}
+F.forEach((f,i)=>{const s=S[f[0]],x=pl+gap*(i+1)+bw*i,bh=(H-pb-16)*s.cpk/mx,y=H-pb-bh;
+h+=`<rect data-t="<b>${f[0]}</b><br>₹${f2(s.cpk)}/km · ${s.r.length} trips" x="${x}" y="${y}" width="${bw}" height="${bh}" rx="6" fill="${s.col}" opacity=".9"${s.k==='E85'?' stroke="#fff" stroke-opacity=".6"':''}/><text x="${x+bw/2}" y="${y-5}" text-anchor="middle" style="fill:#fff">₹${f2(s.cpk)}</text><text x="${x+bw/2}" y="${H-14}" text-anchor="middle">${f[0]}</text>`});
+$('bar').innerHTML=h})();
+// doughnut
+(()=>{const tot=F.reduce((a,f)=>a+S[f[0]].co2,0),R=80,C=2*Math.PI*R;let off=0,h='<g transform="rotate(-90 210 130)">';
+F.forEach(f=>{const s=S[f[0]],l=s.co2/tot*C;h+=`<circle data-t="<b>${f[0]}</b><br>${s.co2.toFixed(3)} kg/km<br>${f1(s.co2/tot*100)}% of total" cx="210" cy="130" r="${R}" fill="none" stroke="${s.col}" stroke-width="34" stroke-dasharray="${l-2} ${C-l+2}" stroke-dashoffset="${-off}"/>`;off+=l});
+h+=`</g><text x="210" y="126" text-anchor="middle" style="fill:#fff;font-size:22px;font-weight:700">${Math.min(...F.map(f=>S[f[0]].co2)).toFixed(3)}</text><text x="210" y="144" text-anchor="middle">lowest kg/km (E85)</text>`;
+$('dn').innerHTML=h;$('lg').innerHTML=F.map(f=>`<span><i style="background:${f[2]}"></i>${f[0]} ${S[f[0]].co2.toFixed(3)}</span>`).join('')})();
+// line chart
+(()=>{const W=600,H=300,l=40,b=30,t=14,r=12,ymx=Math.ceil(Math.max(...F.map(f=>{const s=S[f[0]];return Math.max(s.ic+s.sl*12,s.ic)}),...rows.map(x=>x.c/x.d)))+0.5;
+const X=a=>l+(W-l-r)*a/12,Yy=v=>H-b-(H-b-t)*Math.max(0,v)/ymx;let h='';
+for(let i=0;i<=ymx;i++)h+=`<line x1="${l}" x2="${W-r}" y1="${Yy(i)}" y2="${Yy(i)}" stroke="#fff2"/><text x="${l-6}" y="${Yy(i)+4}" text-anchor="end">₹${i}</text>`;
+for(let a=0;a<=12;a+=2)h+=`<text x="${X(a)}" y="${H-10}" text-anchor="middle">${a}y</text>`;
+F.forEach(f=>{const s=S[f[0]],y=a=>Math.max(.05,s.ic+s.sl*a),tip=`<b>${f[0]}</b> trend<br>₹${f2(y(CFG.age))}/km at ${CFG.age}y`;
+ h+=`<path data-t="${tip}" d="M${X(0)} ${Yy(y(0))}L${X(12)} ${Yy(y(12))}" stroke="${s.col}" stroke-width="2" stroke-dasharray="5 5" opacity=".55" fill="none"/>`;
+ h+=`<path data-t="${tip}" d="M${X(s.amin)} ${Yy(y(s.amin))}L${X(s.amax)} ${Yy(y(s.amax))}" stroke="${s.col}" stroke-width="3.2" fill="none" stroke-linecap="round"/>`;
+ s.r.forEach(x=>h+=`<circle data-t="<b>${f[0]}</b> · ${x.a}y<br>₹${f2(x.c/x.d)}/km" cx="${X(x.a)}" cy="${Yy(x.c/x.d)}" r="3" fill="${s.col}" stroke="#0a0f1e"/>`)});
+h+=`<line x1="${X(CFG.age)}" x2="${X(CFG.age)}" y1="${t}" y2="${H-b}" stroke="#fff" stroke-dasharray="3 3"/><text x="${X(CFG.age)+5}" y="${t+10}" style="fill:#fff">Your car · ${CFG.age}y</text>`;
+$('ln').innerHTML=h})();
+// buckets
+(()=>{const mine=B.findIndex(b=>CFG.age>=b[2]&&CFG.age<=b[3]);
+$('bk').innerHTML=`<tr><th>Fuel</th>${B.map((b,i)=>`<th class="${i===mine?'me':''}">${b[0]}<br>(${b[1]})${i===mine?'<br>🚗 '+CFG.age+'y':''}</th>`).join('')}</tr>`+F.map(f=>{const s=S[f[0]];return `<tr><td style="color:${s.col};font-weight:600">${f[0]}</td>${s.bk.map((c,i)=>`<td class="${i===mine?'me':''}">${c?`${f2(c.c)} | ${f2(c.m)}`:'—'}</td>`).join('')}</tr>`}).join('');
+$('bn').textContent=`Highlighted column = your car's age (${CFG.age}y). “—” = no trips in the CSV for that bucket.`})();
+// score
+const mm=(k,v)=>{const a=F.map(f=>S[f[0]][k]),lo=Math.min(...a),hi=Math.max(...a);return (hi-v)/(hi-lo)};
+const sc=4*mm('cpk',E.cpk)+3*mm('co2',E.co2)+2*mm('rf',E.rf)+1*mm('mpk',E.mpk);
+(()=>{const col=sc>=7?'#22c55e':sc>=5?'#f5a623':'#ef4444',d='M20 120A100 100 0 0 1 220 120';
+$('ga').innerHTML=`<path class="arc" d="${d}" pathLength="100" stroke="#fff2"/><path class="arc f" d="${d}" pathLength="100" stroke="${col}" stroke-dasharray="${sc*10} 100" style="filter:drop-shadow(0 0 6px ${col})"/><text x="120" y="108" text-anchor="middle" style="fill:#fff;font-size:38px;font-weight:700">${f1(sc)}</text><text x="120" y="130" text-anchor="middle">out of 10</text>`;
+const dc=(E.cpk/Y.cpk-1)*100;
+$('vd').innerHTML=`E85 scores <b style="color:${col}">${f1(sc)}/10</b>: cleanest CO₂ (${E.co2.toFixed(3)} kg/km) and ${f1(E.rf)}-min refuels, but at ₹${f2(E.cpk)}/km it runs ${f1(Math.abs(dc))}% ${dc>0?'costlier':'cheaper'} than your ${CFG.fuel} — ${dc>0?'not worth switching on running cost alone':'worth a serious look'}.`})();
+// cards
+const T={E85:[[`Lowest CO₂: ${E.co2.toFixed(3)} kg/km`,`Pump price ${f1(saving)}% below petrol`],[`Highest cost/km: ₹${f2(E.cpk)}`,`Lowest mileage of liquid fuels: ${f1(E.ml)} km/l`],'Eco-minded city drivers near E85 pumps'],
+Petrol:[[`Low maintenance: ₹${f2(P.mpk)}/km`,`${f1(P.rf)}-min refuel, wide availability`],[`High cost/km: ₹${f2(P.cpk)}`,`CO₂ ${P.co2.toFixed(3)} kg/km`],'Low-mileage users wanting simplicity'],
+Diesel:[[`Good mileage: ${f1(S.Diesel.ml)} km/l`,`${f1(S.Diesel.rf)}-min refuel`],[`Highest maintenance: ₹${f2(S.Diesel.mpk)}/km`,`Highest CO₂: ${S.Diesel.co2.toFixed(3)} kg/km`],'High-km highway and mixed use'],
+CNG:[[`Low cost/km: ₹${f2(S.CNG.cpk)}`,`CO₂ ${S.CNG.co2.toFixed(3)} kg/km`],[`Slower refuel: ${f1(S.CNG.rf)} min`,`Maintenance ₹${f2(S.CNG.mpk)}/km`],'Daily commuters with CNG stations nearby'],
+EV:[[`Cheapest: ₹${f2(S.EV.cpk)}/km`,`Maintenance just ₹${f2(S.EV.mpk)}/km`],[`Slow recharge: ${f1(S.EV.rf)} min`,`Only ages ${S.EV.amin}–${S.EV.amax}y in data`],'Predictable routes with home charging']};
+$('fc').innerHTML=F.map(f=>{const s=S[f[0]],t=T[f[0]],on=s.n===CFG.fuel||s.k===CFG.fuel;
+return `<div class="g c${on?' on':''}" style="--c:${s.col}">${on?'<span class="b">YOUR FUEL</span>':''}<h3>${f[0]}</h3><ul>${t[0].map(x=>`<li>✅ ${x}</li>`).join('')}${t[1].map(x=>`<li>❌ ${x}</li>`).join('')}</ul><div class="bf">🚗 Best for: ${t[2]}</div></div>`}).join('');
+</script></body></html>
