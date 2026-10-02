@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Face Puzzle</title>
+<style>
+  :root {
+    --bg: #0f1226; --card: #1a1f3d; --text: #eef0ff; --muted: #9aa2d0;
+    --accent: #7c5cff; --accent2: #22d3ee; --good: #22c55e; --drag: #f59e0b; --danger: #ef4444;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; min-height: 100%; background: radial-gradient(circle at 20% 0%, #232a5c, var(--bg) 60%); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  body { padding: 16px; display: flex; justify-content: center; }
+  .app { width: 100%; max-width: 640px; display: flex; flex-direction: column; gap: 14px; }
+  h1 { margin: 0; font-size: 1.6rem; text-align: center; letter-spacing: .5px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sub { text-align: center; color: var(--muted); margin: 0; font-size: .95rem; }
+  .card { background: var(--card); border-radius: 18px; padding: 16px; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+  .hidden { display: none !important; }
+  .stage { position: relative; width: 100%; aspect-ratio: 1 / 1; border-radius: 14px; overflow: hidden; background: #000; }
+  video, #snapPreview { width: 100%; height: 100%; object-fit: cover; display: block; }
+  video { transform: scaleX(-1); }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 14px; }
+  button { font: inherit; font-weight: 600; border: 0; border-radius: 12px; padding: 12px 18px; cursor: pointer; color: #fff;
+    background: linear-gradient(135deg, var(--accent), #5a3fe0); transition: transform .1s, opacity .2s; }
+  button:hover { transform: translateY(-1px); }
+  button:active { transform: translateY(1px); }
+  button:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+  button.alt { background: #2b3160; }
+  button.diff { background: linear-gradient(135deg, var(--accent2), #0ea5c6); color: #04222a; min-width: 90px; }
+  .msg { text-align: center; color: var(--muted); margin: 12px 0 0; font-size: .95rem; }
+  .err { color: #fecaca; background: rgba(239,68,68,.15); border: 1px solid var(--danger); padding: 12px; border-radius: 12px; margin-top: 12px; text-align: center; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+  .stat { background: #232950; border-radius: 12px; padding: 8px; text-align: center; }
+  .stat b { display: block; font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+  .stat span { font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
+  #board { position: relative; width: 100%; aspect-ratio: 1 / 1; background: #0b0e20; border-radius: 12px; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
+  .piece { position: absolute; background-repeat: no-repeat; border: 2px solid rgba(255,255,255,.18); border-radius: 4px; cursor: grab;
+    transition: left .18s ease, top .18s ease, border-color .15s; touch-action: none; }
+  .piece.correct { border-color: var(--good); box-shadow: inset 0 0 0 1px var(--good); }
+  .piece.dragging { border-color: var(--drag); box-shadow: 0 8px 24px rgba(0,0,0,.6), inset 0 0 0 2px var(--drag); z-index: 50; cursor: grabbing; transition: none; transform: scale(1.04); }
+  .overlay { position: fixed; inset: 0; background: rgba(5,7,20,.82); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 100; overflow-y: auto; }
+  .modal { background: var(--card); border-radius: 20px; padding: 22px; width: 100%; max-width: 440px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,.6); }
+  .modal h2 { margin: 0 0 4px; font-size: 1.6rem; }
+  .results { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 14px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: .85rem; margin-top: 6px; }
+  th, td { padding: 6px 4px; text-align: center; border-bottom: 1px solid #2b3160; }
+  th { color: var(--muted); font-weight: 600; font-size: .72rem; text-transform: uppercase; }
+  tr.me td { color: var(--good); font-weight: 700; }
+  h3 { margin: 14px 0 4px; font-size: 1rem; }
+  .hint { color: var(--muted); font-size: .85rem; text-align: center; margin: 10px 0 0; }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>Face Puzzle</h1>
+  <p class="sub">Snap a selfie, slice it up, and put your face back together.</p>
+
+  <section id="screenCamera" class="card">
+    <div class="stage">
+      <video id="video" autoplay playsinline muted></video>
+    </div>
+    <div id="camError" class="err hidden"></div>
+    <p id="camMsg" class="msg">Requesting camera access…</p>
+    <div class="row">
+      <button id="btnSnap" disabled>📸 Take Photo</button>
+      <button id="btnRetryCam" class="alt hidden">Try Camera Again</button>
+    </div>
+  </section>
+
+  <section id="screenDifficulty" class="card hidden">
+    <div class="stage"><canvas id="snapPreview" width="600" height="600"></canvas></div>
+    <p class="msg">Choose your difficulty</p>
+    <div class="row">
+      <button class="diff" data-n="3">3 × 3</button>
+      <button class="diff" data-n="4">4 × 4</button>
+      <button class="diff" data-n="5">5 × 5</button>
+    </div>
+    <div class="row">
+      <button id="btnRetake" class="alt">↺ Retake Photo</button>
+    </div>
+    <div id="lbDifficulty"></div>
+  </section>
+
+  <section id="screenGame" class="card hidden">
+    <div class="stats">
+      <div class="stat"><b id="timer">00:00.0</b><span>Time</span></div>
+      <div class="stat"><b id="moves">0</b><span>Moves</span></div>
+      <div class="stat"><b id="correct">0/0</b><span>Correct</span></div>
+    </div>
+    <div id="board"></div>
+    <p class="hint">Drag a piece onto another to swap them. Green border = correct spot.</p>
+    <div class="row">
+      <button id="btnPlayAgainGame" class="alt">🔀 Reshuffle</button>
+      <button id="btnNewPhotoGame" class="alt">📷 New Photo</button>
+    </div>
+  </section>
+</div>
+
+<div id="overlay" class="overlay hidden">
+  <div class="modal">
+    <h2>🎉 Puzzle Solved!</h2>
+    <div class="results">
+      <div class="stat"><b id="resTime">-</b><span>Time</span></div>
+      <div class="stat"><b id="resMoves">-</b><span>Moves</span></div>
+      <div class="stat"><b id="resDiff">-</b><span>Difficulty</span></div>
+    </div>
+    <h3>🏆 Top 5 Best Times</h3>
+    <div id="lbResults"></div>
+    <div class="row">
+      <button id="btnPlayAgain">▶ Play Again</button>
+      <button id="btnNewPhoto" class="alt">📷 New Photo</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var video = $('video'), snapPreview = $('snapPreview');
+  var screens = { camera: $('screenCamera'), difficulty: $('screenDifficulty'), game: $('screenGame') };
+  var board = $('board');
+  var STORAGE_KEY = 'facePuzzleBestTimes.v1';
+
+  var stream = null;
+  var photoURL = null;
+  var n = 3;
+  var slots = [];
+  var pieceEls = [];
+  var moves = 0;
+  var startTime = 0, elapsed = 0, timerId = null, running = false;
+  var solved = false;
+
+  function showScreen(name) {
+    Object.keys(screens).forEach(function (k) { screens[k].classList.toggle('hidden', k !== name); });
+  }
+
+  function stopCamera() {
+    if (stream) { stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; }
+    video.srcObject = null;
+  }
+
+  function showCamError(text) {
+    $('camError').textContent = text;
+    $('camError').classList.remove('hidden');
+    $('camMsg').textContent = '';
+    $('btnSnap').disabled = true;
+    $('btnRetryCam').classList.remove('hidden');
+  }
+
+  function startCamera() {
+    $('camError').classList.add('hidden');
+    $('btnRetryCam').classList.add('hidden');
+    $('btnSnap').disabled = true;
+    $('camMsg').textContent = 'Requesting camera access…';
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      showCamError('Camera is not available in this browser, or the page is not served over HTTPS/localhost.');
+      return;
+    }
+    stopCamera();
+    navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false
+    }).then(function (s) {
+      stream = s;
+      video.srcObject = s;
+      var p = video.play();
+      if (p && p.catch) p.catch(function () {});
+      video.onloadedmetadata = function () {
+        $('btnSnap').disabled = false;
+        $('camMsg').textContent = 'Smile! Frame your face, then press Take Photo.';
+      };
+    }).catch(function (err) {
+      var name = err && err.name;
+      if (name === 'NotAllowedError' || name === 'SecurityError' || name === 'PermissionDeniedError') {
+        showCamError('Camera permission was denied. Allow camera access in your browser settings (the lock icon in the address bar), then press "Try Camera Again".');
+      } else if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
+        showCamError('No camera was found on this device.');
+      } else if (name === 'NotReadableError' || name === 'TrackStartError') {
+        showCamError('The camera is in use by another application. Close it and try again.');
+      } else {
+        showCamError('Could not start the camera' + (err && err.message ? ': ' + err.message : '.'));
+      }
+    });
+  }
+
+  function takePhoto() {
+    var vw = video.videoWidth, vh = video.videoHeight;
+    if (!vw || !vh) return;
+    var side = Math.min(vw, vh);
+    var sx = (vw - side) / 2, sy = (vh - side) / 2;
+    var c = document.createElement('canvas');
+    c.width = c.height = 600;
+    var ctx = c.getContext('2d');
+    ctx.translate(600, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, sx, sy, side, side, 0, 0, 600, 600);
+    photoURL = c.toDataURL('image/jpeg', 0.92);
+    snapPreview.getContext('2d').drawImage(c, 0, 0);
+    stopCamera();
+    renderLeaderboard($('lbDifficulty'), null);
+    showScreen('difficulty');
+  }
+
+  function retake() {
+    hideOverlay();
+    stopTimer();
+    photoURL = null;
+    showScreen('camera');
+    startCamera();
+  }
+
+  function shuffleSolvable(count) {
+    var arr, i, j, t, tries = 0;
+    do {
+      arr = [];
+      for (i = 0; i < count; i++) arr.push(i);
+      for (i = count - 1; i > 0; i--) {
+        j = Math.floor(Math.random() * (i + 1));
+        t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+      }
+      tries++;
+    } while (isSolvedArr(arr) && tries < 50);
+    if (isSolvedArr(arr)) { t = arr[0]; arr[0] = arr[1]; arr[1] = t; }
+    return arr;
+  }
+
+  function isSolvedArr(arr) {
+    for (var i = 0; i < arr.length; i++) if (arr[i] !== i) return false;
+    return true;
+  }
+
+  function buildPuzzle(size) {
+    n = size;
+    var count = n * n;
+    slots = shuffleSolvable(count);
+    moves = 0;
+    solved = false;
+    board.innerHTML = '';
+    pieceEls = [];
+    var pct = 100 / n;
+
+    for (var id = 0; id < count; id++) {
+      var el = document.createElement('div');
+      el.className = 'piece';
+      el.dataset.id = id;
+      var col = id % n, row = Math.floor(id / n);
+      el.style.width = pct + '%';
+      el.style.height = pct + '%';
+      el.style.backgroundImage = 'url(' + photoURL + ')';
+      el.style.backgroundSize = (n * 100) + '% ' + (n * 100) + '%';
+      el.style.backgroundPosition = (n > 1 ? col * 100 / (n - 1) : 0) + '% ' + (n > 1 ? row * 100 / (n - 1) : 0) + '%';
+      attachDrag(el);
+      board.appendChild(el);
+      pieceEls[id] = el;
+    }
+    layoutPieces();
+    updateStats();
+    showScreen('game');
+    startTimer();
+  }
+
+  function layoutPieces() {
+    var pct = 100 / n;
+    for (var cell = 0; cell < slots.length; cell++) {
+      var el = pieceEls[slots[cell]];
+      el.style.left = (cell % n) * pct + '%';
+      el.style.top = Math.floor(cell / n) * pct + '%';
+      el.classList.toggle('correct', slots[cell] === cell);
+    }
+  }
+
+  function countCorrect() {
+    var c = 0;
+    for (var i = 0; i < slots.length; i++) if (slots[i] === i) c++;
+    return c;
+  }
+
+  function updateStats() {
+    $('moves').textContent = moves;
+    $('correct').textContent = countCorrect() + '/' + slots.length;
+  }
+
+  function attachDrag(el) {
+    var dragging = false, offX = 0, offY = 0, fromCell = 0, pid = null;
+
+    el.addEventListener('pointerdown', function (e) {
+      if (solved || !running) return;
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      e.preventDefault();
+      var id = +el.dataset.id;
+      fromCell = slots.indexOf(id);
+      var r = el.getBoundingClientRect();
+      offX = e.clientX - r.left;
+      offY = e.clientY - r.top;
+      dragging = true;
+      pid = e.pointerId;
+      try { el.setPointerCapture(pid); } catch (err) {}
+      el.classList.add('dragging');
+      moveTo(e);
+    });
+
+    function moveTo(e) {
+      var b = board.getBoundingClientRect();
+      el.style.left = (e.clientX - b.left - offX) + 'px';
+      el.style.top = (e.clientY - b.top - offY) + 'px';
+    }
+
+    el.addEventListener('pointermove', function (e) {
+      if (!dragging || e.pointerId !== pid) return;
+      e.preventDefault();
+      moveTo(e);
+    });
+
+    function finish(e, cancelled) {
+      if (!dragging || e.pointerId !== pid) return;
+      dragging = false;
+      try { el.releasePointerCapture(pid); } catch (err) {}
+      el.classList.remove('dragging');
+
+      var b = board.getBoundingClientRect();
+      var cw = b.width / n, ch = b.height / n;
+      var r = el.getBoundingClientRect();
+      var cx = r.left + r.width / 2 - b.left;
+      var cy = r.top + r.height / 2 - b.top;
+      var col = Math.max(0, Math.min(n - 1, Math.floor(cx / cw)));
+      var row = Math.max(0, Math.min(n - 1, Math.floor(cy / ch)));
+      var toCell = row * n + col;
+
+      if (!cancelled && toCell !== fromCell) {
+        var tmp = slots[toCell];
+        slots[toCell] = slots[fromCell];
+        slots[fromCell] = tmp;
+        moves++;
+      }
+      layoutPieces();
+      updateStats();
+      if (!cancelled) checkWin();
+    }
+
+    el.addEventListener('pointerup', function (e) { finish(e, false); });
+    el.addEventListener('pointercancel', function (e) { finish(e, true); });
+    el.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  }
+
+  function fmt(ms) {
+    var tenths = Math.floor(ms / 100) % 10;
+    var totalSec = Math.floor(ms / 1000);
+    var s = totalSec % 60, m = Math.floor(totalSec / 60);
+    return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s + '.' + tenths;
+  }
+
+  function startTimer() {
+    stopTimer();
+    elapsed = 0;
+    startTime = performance.now();
+    running = true;
+    $('timer').textContent = fmt(0);
+    timerId = setInterval(function () {
+      elapsed = performance.now() - startTime;
+      $('timer').textContent = fmt(elapsed);
+    }, 50);
+  }
+
+  function stopTimer() {
+    if (timerId) { clearInterval(timerId); timerId = null; }
+    running = false;
+  }
+
+  function checkWin() {
+    if (countCorrect() !== slots.length) return;
+    solved = true;
+    elapsed = performance.now() - startTime;
+    stopTimer();
+    $('timer').textContent = fmt(elapsed);
+    var entry = saveScore({
+      date: new Date().toISOString(),
+      time: Math.round(elapsed),
+      moves: moves,
+      difficulty: n + '×' + n
+    });
+    $('resTime').textContent = fmt(elapsed);
+    $('resMoves').textContent = moves;
+    $('resDiff').textContent = n + '×' + n;
+    renderLeaderboard($('lbResults'), entry);
+    setTimeout(function () { $('overlay').classList.remove('hidden'); }, 450);
+  }
+
+  function hideOverlay() { $('overlay').classList.add('hidden'); }
+
+  function loadScores() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      var arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) { return []; }
+  }
+
+  function saveScore(entry) {
+    var list = loadScores();
+    list.push(entry);
+    list.sort(function (a, b) { return a.time - b.time; });
+    list = list.slice(0, 5);
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); } catch (e) {}
+    return entry;
+  }
+
+  function renderLeaderboard(container, highlight) {
+    var list = loadScores();
+    if (!list.length) {
+      container.innerHTML = '<p class="hint">No best times yet — solve a puzzle to set one!</p>';
+      return;
+    }
+    var html = '<h3>🏆 Best Times</h3><table><thead><tr><th>#</th><th>Time</th><th>Moves</th><th>Grid</th><th>Date</th></tr></thead><tbody>';
+    list.forEach(function (s, i) {
+      var d = new Date(s.date);
+      var ds = isNaN(d) ? '-' : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' +
+        d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+      var me = highlight && s.date === highlight.date && s.time === highlight.time;
+      html += '<tr' + (me ? ' class="me"' : '') + '><td>' + (i + 1) + '</td><td>' + fmt(s.time) + '</td><td>' + s.moves +
+        '</td><td>' + s.difficulty + '</td><td>' + ds + '</td></tr>';
+    });
+    html += '</tbody></table>';
+    container.innerHTML = html;
+  }
+
+  $('btnSnap').addEventListener('click', takePhoto);
+  $('btnRetryCam').addEventListener('click', startCamera);
+  $('btnRetake').addEventListener('click', retake);
+  $('btnNewPhoto').addEventListener('click', retake);
+  $('btnNewPhotoGame').addEventListener('click', retake);
+  $('btnPlayAgain').addEventListener('click', function () { hideOverlay(); buildPuzzle(n); });
+  $('btnPlayAgainGame').addEventListener('click', function () { hideOverlay(); buildPuzzle(n); });
+
+  Array.prototype.forEach.call(document.querySelectorAll('.diff'), function (b) {
+    b.addEventListener('click', function () { buildPuzzle(parseInt(b.dataset.n, 10)); });
+  });
+
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden && !photoURL) stopCamera();
+    else if (!document.hidden && !photoURL && !screens.camera.classList.contains('hidden') && !stream) startCamera();
+  });
+
+  window.addEventListener('beforeunload', stopCamera);
+
+  showScreen('camera');
+  startCamera();
+})();
+</script>
+</body>
+</html>
