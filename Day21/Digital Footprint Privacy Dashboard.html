@@ -1,0 +1,114 @@
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f7f8fa;--card:#fff;--tx:#14171f;--mu:#667085;--bd:#e4e7ec;--ac:#5b5bf0;--g:#16a34a;--y:#ca8a04;--o:#ea580c;--r:#dc2626;--c0:#eef0f4}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d0f14;--card:#151921;--tx:#e8eaf0;--mu:#8b93a7;--bd:#262c38;--ac:#8b8bff;--c0:#1c212b}}
+:root[data-theme="dark"]{--bg:#0d0f14;--card:#151921;--tx:#e8eaf0;--mu:#8b93a7;--bd:#262c38;--ac:#8b8bff;--c0:#1c212b}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.5 Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+.w{max-width:1100px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:22px;margin:0}h2{font-size:15px;margin:0 0 4px}.sub{color:var(--mu);font-size:12.5px;margin:0 0 12px}
+.hd{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.grid{display:grid;gap:14px}.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}.g4{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px}
+.big{font-size:34px;font-weight:700;letter-spacing:-1px}.lbl{color:var(--mu);font-size:12px}
+.tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.5px;padding:2px 7px;border-radius:99px;vertical-align:middle}
+.F{background:#16a34a22;color:var(--g)}.E{background:#ca8a0422;color:var(--y)}
+.sec{margin-top:22px}.ov{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:12.5px}th,td{padding:6px 8px;text-align:center;border-bottom:1px solid var(--bd);white-space:nowrap}th:first-child,td:first-child{text-align:left}
+th{color:var(--mu);font-weight:600;font-size:11px}
+.hm{border-radius:6px;font-weight:600;font-size:11px;color:#fff;min-width:44px}
+.l0{background:var(--c0);color:var(--mu)}.l1{background:#16a34a}.l2{background:#ca8a04}.l3{background:#dc2626}
+.bar{height:8px;background:var(--c0);border-radius:9px;overflow:hidden}.bar i{display:block;height:100%;border-radius:9px}
+.row{display:flex;align-items:center;gap:10px;margin:7px 0}.row b{width:110px;font-weight:500}.row .bar{flex:1}.row span{width:36px;text-align:right;font-variant-numeric:tabular-nums}
+.chip{display:inline-block;background:var(--c0);border-radius:6px;padding:2px 8px;margin:2px;font-size:12px}
+select,button{font:inherit;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:6px 10px;cursor:pointer}
+label.act{display:flex;gap:10px;align-items:flex-start;padding:9px;border:1px solid var(--bd);border-radius:9px;margin:6px 0;cursor:pointer}
+label.act small{color:var(--mu);display:block}
+.ni{color:var(--mu);font-style:italic}
+.wow{border-left:3px solid var(--ac);padding:4px 12px;margin:9px 0}
+.verdict{border:1px solid var(--ac);background:linear-gradient(135deg,color-mix(in srgb,var(--ac) 10%,var(--card)),var(--card))}
+</style>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Digital Footprint Privacy Dashboard</title>
+<body><div class="w">
+<div class="hd"><div><h1>🛡️ Digital Footprint Dashboard</h1><p class="sub" style="margin:2px 0 0">Built only from a user-reported app list. No private databases accessed. Nothing here is certain.</p></div>
+<div><span class="tag F">FACT = reported</span> <span class="tag E">ESTIMATE = inferred</span> <button onclick="tg()">◐ Theme</button></div></div>
+
+<div class="grid g2">
+<div class="card"><h2>Digital Footprint Score <span class="tag E">ESTIMATE</span></h2><div class="big" id="fp"></div><div id="fpb"></div><div class="bar" style="margin-top:10px"><i id="fpbar"></i></div><p class="sub" style="margin-top:8px">🟢 0–30 Minimal · 🟡 31–60 Moderate · 🟠 61–80 Significant · 🔴 81–100 Extensive</p></div>
+<div class="card"><h2>Privacy Score <span class="tag E">ESTIMATE</span></h2><div class="big" id="pv"></div><div id="pvb"></div><div class="bar" style="margin-top:10px"><i id="pvbar"></i></div><p class="sub" style="margin-top:8px">🔴 0–30 Weak · 🟠 31–60 Fair · 🟡 61–80 Good · 🟢 81–100 Strong</p></div>
+</div>
+<div class="grid g4" style="margin-top:14px">
+<div class="card"><div class="lbl">Total Services <span class="tag F">FACT</span></div><div class="big" id="ns"></div></div>
+<div class="card"><div class="lbl">Parent Companies <span class="tag F">FACT</span></div><div class="big" id="nc"></div></div>
+<div class="card"><div class="lbl">Ecosystem Concentration <span class="tag E">EST</span></div><div class="big" id="ec"></div><div class="lbl" id="ecn"></div></div>
+<div class="card"><div class="lbl">Est. Tracking Surface <span class="tag E">EST</span></div><div class="big" id="ts"></div><div class="lbl" id="tsn"></div></div>
+</div>
+
+<div class="sec card"><h2>Reported Services → Parent Companies <span class="tag F">FACT</span></h2><p class="sub">Parent mapping is based on public corporate ownership. PUBG Mobile publisher varies by region (Krafton; Tencent involved in some markets).</p><div id="map"></div></div>
+
+<div class="sec card"><h2>Exposure Heatmap <span class="tag E">ESTIMATE</span></h2><p class="sub">Likelihood a company's apps collect each data category, based on typical app behaviour. Hover cells for detail.</p><div class="ov"><table id="hm"></table></div></div>
+
+<div class="grid g2 sec">
+<div class="card"><h2>Company Exposure Ranking <span class="tag E">ESTIMATE</span></h2><p class="sub">Combined exposure across all the company's reported apps (0–100).</p><div id="rk"></div></div>
+<div class="card"><h2>Risk Radar <span class="tag E">ESTIMATE</span></h2><p class="sub">Exposure by data category.</p><svg id="rd" viewBox="0 0 320 300" width="100%" style="max-height:300px"></svg></div>
+</div>
+
+<div class="sec card"><h2>Data Collection Matrix <span class="tag E">ESTIMATE</span></h2><p class="sub">○ none likely · ● low · ●● medium · ●●● high likelihood. Filter:
+<select id="fl" onchange="mx()"><option value="">All companies</option></select></p><div class="ov"><table id="mx"></table></div></div>
+
+<div class="grid g2 sec">
+<div class="card"><h2>Digital Twin Profile <span class="tag E">ESTIMATE</span></h2><p class="sub">A hypothetical profile an advertiser-style model might draw. Not certain, not verified.</p><div id="tw"></div></div>
+<div class="card"><h2>Most Valuable Data Assets <span class="tag E">ESTIMATE</span></h2><p class="sub">Which data types are typically most valuable for profiling or ads.</p><div id="va"></div></div>
+</div>
+
+<div class="sec card"><h2>💡 WOW Insights <span class="tag E">ESTIMATE</span></h2><div id="wow"></div></div>
+
+<div class="sec card"><h2>Privacy Improvement Simulator <span class="tag E">ESTIMATE</span></h2><p class="sub">Tick actions to see a projected score. Gains are rough heuristics, not guarantees.</p>
+<div class="grid g2"><div id="sim"></div><div><div class="lbl">Projected Privacy Score</div><div class="big" id="sp"></div><div id="spb"></div><div class="lbl" style="margin-top:10px">Projected Footprint Score</div><div class="big" id="sf"></div><div id="sfb"></div></div></div></div>
+
+<div class="sec card verdict"><h2>Final Verdict <span class="tag E">ESTIMATE</span></h2><div id="vd"></div></div>
+<p class="sub" style="margin-top:16px">Disclaimer: scores are heuristic estimates from a sample list of 15 apps. Behavioural and demographic traits are inferences, never confirmed. Anything not inferable is marked “Not enough information provided.”</p>
+</div>
+<script>
+const S=[["Instagram","Meta"],["WhatsApp","Meta"],["Snapchat","Snap"],["TikTok","ByteDance"],["YouTube","Alphabet"],["Discord","Discord"],["iMessage","Apple"],["Spotify","Spotify"],["Roblox","Roblox"],["PUBG Mobile","Krafton"],["Amazon","Amazon"],["Meesho","Meesho"],["Google Search","Alphabet"],["Google Pay","Alphabet"],["Google Photos","Alphabet"]];
+const C=["Identity","Contacts","Location","Behavior","Media","Financial","Purchases","Device"];
+const M=[[3,2,2,3,3,0,1,3],[3,3,1,1,2,0,0,3],[3,3,3,3,3,0,0,3],[2,1,2,3,3,0,1,3],[2,0,1,3,2,0,0,2],[2,2,1,2,2,0,0,2],[2,3,1,0,2,0,0,2],[2,1,1,3,0,1,0,2],[2,1,1,3,1,1,1,2],[2,1,1,3,0,1,1,3],[3,1,2,3,0,3,3,2],[3,1,2,2,0,2,3,2],[2,0,2,3,0,0,1,3],[3,2,2,2,0,3,2,2],[2,1,3,2,3,0,0,2]];
+const $=i=>document.getElementById(i),B=(s,t)=>{const a=t=="f"?[[30,"🟢 Minimal","--g"],[60,"🟡 Moderate","--y"],[80,"🟠 Significant","--o"],[100,"🔴 Extensive","--r"]]:[[30,"🔴 Weak","--r"],[60,"🟠 Fair","--o"],[80,"🟡 Good","--y"],[100,"🟢 Strong","--g"]];return a.find(x=>s<=x[0])};
+const co=[...new Set(S.map(s=>s[1]))];
+const cm={};co.forEach(c=>{cm[c]=C.map((_,j)=>Math.max(...S.map((s,i)=>s[1]==c?M[i][j]:0)));});
+const cs=c=>S.filter(s=>s[1]==c).map(s=>s[0]);
+const ex=c=>Math.round(cm[c].reduce((a,b)=>a+b,0)/24*100);
+const tot=M.flat().reduce((a,b)=>a+b,0),inten=tot/(15*24),nz=M.flat().filter(x=>x>0).length;
+const cnt={};S.forEach(s=>cnt[s[1]]=(cnt[s[1]]||0)+1);
+const top2=Object.values(cnt).sort((a,b)=>b-a).slice(0,2).reduce((a,b)=>a+b,0)/S.length;
+const FP=Math.round(30*Math.min(S.length/15,1)+45*inten+25*top2),PV=100-Math.round(.9*FP);
+function badge(el,s,t){const b=B(s,t);$(el).innerHTML=`<b style="color:var(${b[2]})">${b[1]}</b>`;}
+function setS(fe,pe,be,bar,s,t){$(fe).textContent=s;$(fe).style.color=`var(${B(s,t)[2]})`;badge(be,s,t);if(bar){$(bar).style.width=s+"%";$(bar).style.background=`var(${B(s,t)[2]})`}}
+setS("fp","fp","fpb","fpbar",FP,"f");setS("pv","pv","pvb","pvbar",PV,"p");
+$("ns").textContent=S.length;$("nc").textContent=co.length;
+$("ec").textContent=Math.round(top2*100);$("ecn").textContent="Top 2 companies (Alphabet 4 apps, Meta 2) hold "+Math.round(top2*100)+"% of apps";
+$("ts").textContent=nz;$("tsn").textContent=`of ${S.length*8} possible app × category exposures`;
+$("map").innerHTML=co.map(c=>`<div style="margin:6px 0"><b>${c}</b> `+cs(c).map(x=>`<span class="chip">${x}</span>`).join("")+`</div>`).join("");
+const hc=v=>["l0","l1","l2","l3"][v];
+$("hm").innerHTML="<tr><th>Company</th>"+C.map(c=>`<th>${c}</th>`).join("")+"</tr>"+co.map(c=>`<tr><td>${c}</td>`+cm[c].map((v,j)=>`<td><div class="hm ${hc(v)}" title="${c} · ${C[j]}: ${["Unlikely","Low","Medium","High"][v]} likelihood (estimate)">${["–","Low","Med","High"][v]}</div></td>`).join("")+"</tr>").join("");
+const rk=[...co].sort((a,b)=>ex(b)-ex(a));
+$("rk").innerHTML=rk.map((c,i)=>{const e=ex(c),col=e>80?"--r":e>60?"--o":e>40?"--y":"--g";return `<div class="row"><b>${i+1}. ${c}</b><div class="bar"><i style="width:${e}%;background:var(${col})"></i></div><span>${e}</span></div>`}).join("");
+// radar
+(function(){const n=8,cx=160,cy=150,R=100;const val=C.map((_,j)=>{const col=M.map(r=>r[j]);return Math.round((.5*Math.max(...col)/3+.5*col.reduce((a,b)=>a+b,0)/col.length/3)*100)});
+const p=(i,r)=>{const a=-Math.PI/2+i*2*Math.PI/n;return[cx+r*Math.cos(a),cy+r*Math.sin(a)]};let h="";
+[.25,.5,.75,1].forEach(f=>h+=`<polygon points="${C.map((_,i)=>p(i,R*f).join(",")).join(" ")}" fill="none" stroke="var(--bd)"/>`);
+C.forEach((c,i)=>{const[x,y]=p(i,R);h+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="var(--bd)"/>`;const[tx,ty]=p(i,R+20);h+=`<text x="${tx}" y="${ty+4}" text-anchor="middle" font-size="10.5" fill="var(--mu)">${c} ${val[i]}</text>`});
+h+=`<polygon points="${val.map((v,i)=>p(i,R*v/100).join(",")).join(" ")}" fill="var(--ac)" fill-opacity=".25" stroke="var(--ac)" stroke-width="2"/>`;$("rd").innerHTML=h})();
+// matrix
+$("fl").innerHTML+=co.map(c=>`<option>${c}</option>`).join("");
+function mx(){const f=$("fl").value;$("mx").innerHTML="<tr><th>Service</th>"+C.map(c=>`<th>${c}</th>`).join("")+"</tr>"+S.map((s,i)=>(!f||s[1]==f)?`<tr><td>${s[0]} <span class="lbl">${s[1]}</span></td>`+M[i].map(v=>`<td><span class="hm ${hc(v)}" style="padding:1px 6px;display:inline-block">${["○","●","●●","●●●"][v]}</span></td>`).join("")+"</tr>":"").join("")}mx();
+$("tw").innerHTML=[["Mobile-first, social-heavy user","Messaging, short video and photo apps dominate","Medium"],["Likely uses an Apple device","iMessage is Apple-only; Android-style apps like Google Pay also listed","Medium"],["Gaming & entertainment interest","Roblox + PUBG Mobile + Spotify + YouTube + TikTok","Medium"],["Online shopper, likely value-conscious","Amazon + Meesho (Meesho skews price-sensitive)","Low–Medium"],["Likely India-market usage","Google Pay and Meesho are India-centric","Medium"],["Heavy messaging across 4+ apps","WhatsApp, iMessage, Snapchat, Discord, Instagram DMs","Medium"],["Age bracket","Mix of youth-popular apps; cannot be pinned down","Low"],["Income level","Not enough information provided.",""],["Health, political or religious traits","Not enough information provided.",""]].map(t=>`<div style="margin:8px 0"><b${t[2]?"":' class="ni"'}>${t[0]}</b> ${t[2]?`<span class="chip">confidence: ${t[2]}</span>`:""}<div class="${t[2]?"lbl":"ni"}">${t[1]}</div></div>`).join("");
+$("va").innerHTML=[["Purchase & payment history","Amazon, Meesho, Google Pay",95],["Search & intent history","Google Search, YouTube",92],["Social graph / contacts","Instagram, WhatsApp, Snapchat, iMessage, Discord",88],["Photos & location trails","Google Photos, Snapchat, Instagram",82],["Watch / listen / play behaviour","TikTok, YouTube, Spotify, Roblox, PUBG",76]].map(a=>`<div style="margin:9px 0"><div style="display:flex;justify-content:space-between"><b>${a[0]}</b><span>${a[2]}/100</span></div><div class="bar"><i style="width:${a[2]}%;background:var(--ac)"></i></div><div class="lbl">${a[1]}</div></div>`).join("");
+$("wow").innerHTML=["<b>One company, four apps.</b> Alphabet covers search, video, payments and photos — a potentially cross-linked picture of intent, spending and memories.","<b>Search → buy loop.</b> Google Search, Google Pay, Amazon and Meesho together could connect what you want with what you pay for.","<b>Fragmented chat, concentrated risk.</b> Five messaging surfaces mean contact lists are probably duplicated across several companies.","<b>Games with wallets.</b> Roblox and PUBG Mobile combine behavioural data with in-app purchases and, often, younger audiences.","<b>Cross-border mix.</b> Apps from US, Chinese, Korean, Swedish and Indian companies imply multiple legal regimes for your data."].map(x=>`<div class="wow">${x}</div>`).join("");
+const A=[["Tighten Google Activity & ad personalization","Alphabet",6,4],["Switch Meta ad settings & Instagram privacy","Meta",4,3],["Location → “While using” only (or off)","All apps",6,5],["Strip location from photos before sharing","Google Photos / Snap",3,2],["Enable 2FA on Google, Amazon, Instagram, Discord","Accounts",5,0],["Turn on Snapchat Ghost Mode","Snap",3,2],["Revoke contacts access for non-essential apps","All apps",4,3],["Delete unused apps (e.g. a game you no longer play)","Roblox / PUBG",3,4]];
+$("sim").innerHTML=A.map((a,i)=>`<label class="act"><input type="checkbox" onchange="up()" data-i="${i}"><span><b>${a[0]}</b><small>${a[1]} · +${a[2]} privacy · −${a[3]} footprint (est.)</small></span></label>`).join("");
+function up(){let p=PV,f=FP;document.querySelectorAll("#sim input:checked").forEach(c=>{const a=A[c.dataset.i];p+=a[2];f-=a[3]});p=Math.min(p,95);setS("sp","sp","spb",null,p,"p");setS("sf","sf","sfb",null,f,"f");verdict(p,f)}
+function verdict(p,f){const done=document.querySelectorAll("#sim input:checked").length;$("vd").innerHTML=`<p>Estimated footprint <b>${f}/100</b> (${B(f,"f")[1]}) and privacy <b>${p}/100</b> (${B(p,"p")[1]}). The main driver is <b>breadth</b>: 15 services across 11 companies, plus heavy concentration in Alphabet and Meta.</p><p>${done?`You have selected ${done} of ${A.length} actions.`:"Highest-impact first moves: limit location, tighten Google & Meta ad settings, and turn on 2FA."} Nothing here proves what any company actually holds; it shows what the app mix <i>could</i> expose.</p>`}
+up();
+function tg(){const r=document.documentElement,d=r.dataset.theme=="dark"||(!r.dataset.theme&&matchMedia("(prefers-color-scheme:dark)").matches);r.dataset.theme=d?"light":"dark"}
+</script>
