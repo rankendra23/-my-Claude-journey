@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Shark Tank Simulator</title>
+<style>
+:root{--bg:#06141c;--bg2:#0c2431;--card:#102d3d;--line:#1f4a60;--tx:#e8f1f5;--mut:#8fb0bf;--gold:#e9b44c;--red:#e4574b;--grn:#4cc9a0}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(1200px 600px at 50% -10%,#14405a 0,var(--bg) 60%) fixed;color:var(--tx);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh}
+h1,h2,h3{font-family:Georgia,"Times New Roman",serif;margin:0;letter-spacing:-.01em}
+.wrap{max-width:980px;margin:0 auto;padding:20px 16px 60px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.logo{font:700 24px Georgia,serif}.logo span{color:var(--gold)}
+button{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:11px 18px;background:var(--gold);color:#1a1204;font-weight:700;transition:transform .15s,filter .15s}
+button:hover{filter:brightness(1.08);transform:translateY(-1px)}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+button.ghost{background:transparent;color:var(--tx);border:1px solid var(--line)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px}
+.hero{text-align:center;padding:26px 8px 10px}
+.hero h1{font-size:clamp(32px,6vw,56px);line-height:1.05}.hero p{color:var(--mut);max-width:560px;margin:12px auto 0}
+.fin{display:inline-block;animation:swim 7s ease-in-out infinite;font-size:44px}
+@keyframes swim{50%{transform:translateX(18px) rotate(4deg)}}
+form{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px}
+label{display:block;font-size:14px;color:var(--mut);margin-bottom:4px}.full{grid-column:1/-1}
+input,textarea{width:100%;background:var(--bg2);color:var(--tx);border:1px solid var(--line);border-radius:10px;padding:11px 12px;font:inherit}
+textarea{min-height:84px;resize:vertical}
+.judges{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0}
+.j{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center;transition:.25s}
+.j .em{font-size:28px}.j small{color:var(--mut);display:block;font-size:12px}.j .mood{font-size:20px;min-height:26px}
+.j.on{border-color:var(--gold);box-shadow:0 0 0 3px #e9b44c33;transform:translateY(-4px)}
+.pitch h2{font-size:30px;color:var(--gold)}.pitch dl{display:grid;grid-template-columns:150px 1fr;gap:6px 14px;margin:14px 0 0}
+.pitch dt{color:var(--mut)}.pitch dd{margin:0}
+.q{margin-top:16px;animation:pop .45s cubic-bezier(.2,1.4,.4,1)}@keyframes pop{from{opacity:0;transform:scale(.94) translateY(14px)}}
+.q .who{display:flex;gap:10px;align-items:center;margin-bottom:8px}.q .who b{color:var(--gold)}
+.q p.qt{font:20px/1.4 Georgia,serif;margin:6px 0 12px}
+.react{margin-top:12px;padding:12px 14px;border-left:4px solid var(--gold);background:var(--bg2);border-radius:8px;animation:pop .4s}
+.dots{display:flex;gap:6px;margin:10px 0}.dots i{flex:1;height:5px;border-radius:3px;background:var(--line)}.dots i.d{background:var(--gold)}
+.bar{margin:12px 0}.bar .t{display:flex;justify-content:space-between;font-size:14px}.bar .b{height:10px;background:var(--bg2);border-radius:6px;overflow:hidden;margin-top:4px}
+.bar .b i{display:block;height:100%;width:0;border-radius:6px;background:linear-gradient(90deg,var(--line),var(--gold));transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
+.verdict{text-align:center;padding:28px 16px;border-radius:16px;margin:16px 0;border:2px solid var(--gold);animation:pop .6s}
+.verdict h2{font-size:clamp(34px,7vw,60px)}.verdict.Invest,.verdict.Acquire{border-color:var(--grn)}.verdict.Reject{border-color:var(--red)}
+.verdict.Invest h2,.verdict.Acquire h2{color:var(--grn)}.verdict.Reject h2{color:var(--red)}.verdict.Come h2{color:var(--gold)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}.stats div{background:var(--bg2);border-radius:12px;padding:12px}
+.stats small{color:var(--mut);display:block}.stats b{font:700 22px Georgia,serif}
+.votes{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}
+.votes div{background:var(--bg2);border-radius:12px;padding:12px;font-size:14px}.in{color:var(--grn)}.out{color:var(--red)}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+table{width:100%;border-collapse:collapse}td,th{padding:8px;text-align:left;border-bottom:1px solid var(--line);font-size:14px}th{color:var(--mut);font-weight:600}
+canvas#cf{position:fixed;inset:0;pointer-events:none;z-index:50}
+.hide{display:none!important}#rep{display:none}
+@media(max-width:700px){form,.votes,.stats{grid-template-columns:1fr}.judges{grid-template-columns:repeat(2,1fr)}.pitch dl{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media print{body{background:#fff;color:#000}body>*:not(#rep){display:none!important}#rep{display:block!important;font:14px/1.5 Georgia,serif;padding:10px}
+#rep h1,#rep h2{color:#000}#rep table td,#rep table th{border-color:#bbb;color:#000}}
+</style></head><body>
+<canvas id="cf"></canvas>
+<div class="wrap">
+<header><div class="logo">🦈 Shark<span>Tank</span> Simulator</div><button class="ghost" id="lbBtn">Leaderboard</button></header>
+
+<section id="s1">
+<div class="hero"><div class="fin">🦈</div><h1>Pitch your startup to four sharks.</h1><p>Fill in your idea, survive eight tough questions, and see if you leave with a deal.</p></div>
+<div class="card"><form id="f">
+<div><label for="name">Startup name</label><input id="name" required maxlength="60" placeholder="e.g. KisanDirect"></div>
+<div><label for="ask">Funding ask</label><input id="ask" required placeholder="e.g. ₹50 lakh or $200K"></div>
+<div class="full"><label for="prob">Problem statement</label><textarea id="prob" required placeholder="Who hurts, how badly, and how often?"></textarea></div>
+<div class="full"><label for="sol">Solution</label><textarea id="sol" required placeholder="What do you build and why is it better?"></textarea></div>
+<div><label for="rev">Revenue model</label><textarea id="rev" required placeholder="Who pays, how much, how often?"></textarea></div>
+<div><label for="aud">Target audience</label><textarea id="aud" required placeholder="Your first 1,000 customers"></textarea></div>
+<div class="full"><button type="submit">Enter the tank</button></div>
+</form></div>
+</section>
+
+<section id="s2" class="hide">
+<div class="judges" id="jb"></div>
+<div class="card pitch" id="pitch"></div>
+<div class="dots" id="dots"></div>
+<div class="card q" id="qbox"></div>
+</section>
+
+<section id="s3" class="hide"><div id="res"></div></section>
+
+<section id="lb" class="hide"><div class="card"><h2>Leaderboard</h2><div id="lbt" style="margin-top:10px"></div><div class="row"><button class="ghost" id="lbClose">Back</button></div></div></section>
+</div>
+<div id="rep"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const J=[
+ {k:'vc',e:'🦈',n:'The Venture Capitalist',f:'Market size & scalability',dim:'market',
+  q:n=>[`How big can ${n} really get? Give me the market size and why this scales 10x.`,`What stops a bigger player from copying ${n} next quarter? What is your moat?`],
+  r:['That answer is too small for my fund. Think bigger or show proof.','Reasonable. I need sharper numbers to get excited.','Now that is a scalable story. I am leaning in.']},
+ {k:'fo',e:'🦈',n:'The Founder',f:'Execution',dim:'execution',
+  q:n=>[`Who is on the ${n} team, and what have you actually built or shipped so far?`,`Walk me through your first 90 days with this money. What gets done, in order?`],
+  r:['Plans without proof. I have seen this movie end badly.','You have a direction, but I want dates and owners.','Specific and grounded. You sound like someone who ships.']},
+ {k:'cu',e:'🦈',n:'The Customer',f:'Usefulness',dim:'innovation',
+  q:n=>[`Would I use ${n} every week? What do I stop doing once I have it?`,`Why would your target customer switch to ${n} today, instead of what they already use?`],
+  r:['I would not change my habits for that. Convince me.','Useful, but I am not sure I would pay yet.','Yes. I can picture myself using this tomorrow.']},
+ {k:'an',e:'🦈',n:'The Angel Investor',f:'Profitability',dim:'biz',
+  q:n=>[`What does it cost to win one customer, and what does one customer pay you over time?`,`When does ${n} break even, and how does my money come back to me?`],
+  r:['No numbers, no deal. Profit is not a feeling.','Directionally fine. Show me margins next time.','Those unit economics make me comfortable.']}
+];
+const MOOD=['😠','🤔','😃'];
+let S={};
+function show(id){['s1','s2','s3','lb'].forEach(x=>$(x).classList.toggle('hide',x!==id));window.scrollTo({top:0,behavior:'smooth'})}
+const wc=t=>(t.trim().match(/\S+/g)||[]).length;
+const kw=(t,re)=>new Set((t.toLowerCase().match(re)||[])).size;
+
+$('f').onsubmit=e=>{e.preventDefault();
+ S={idea:{name:$('name').value.trim(),ask:$('ask').value.trim(),prob:$('prob').value.trim(),sol:$('sol').value.trim(),rev:$('rev').value.trim(),aud:$('aud').value.trim()},qs:[],i:0,ans:[]};
+ J.forEach((j,ji)=>j.q(S.idea.name).forEach(t=>S.qs.push({ji,t})));
+ S.qs.sort((a,b)=>(S.qs.indexOf(a)%2)-(S.qs.indexOf(b)%2)||a.ji-b.ji); // round-robin: one question each, then the second round
+ $('jb').innerHTML=J.map((j,i)=>`<div class="j" id="j${i}"><div class="em">${j.e}</div><b>${j.n.replace('The ','')}</b><small>${j.f}</small><div class="mood" id="m${i}"></div></div>`).join('');
+ const d=S.idea;
+ $('pitch').innerHTML=`<h2>${esc(d.name)}</h2><p style="color:var(--mut);margin:4px 0 0">Asking for ${esc(d.ask)}</p><dl><dt>Problem</dt><dd>${esc(d.prob)}</dd><dt>Solution</dt><dd>${esc(d.sol)}</dd><dt>Revenue model</dt><dd>${esc(d.rev)}</dd><dt>Audience</dt><dd>${esc(d.aud)}</dd></dl>`;
+ show('s2');ask();
+};
+function ask(){
+ $('dots').innerHTML=S.qs.map((_,i)=>`<i class="${i<S.i?'d':''}"></i>`).join('');
+ if(S.i>=S.qs.length){return finish()}
+ const q=S.qs[S.i],j=J[q.ji];
+ document.querySelectorAll('.j').forEach((x,i)=>x.classList.toggle('on',i===q.ji));
+ $('qbox').innerHTML=`<div class="who"><span style="font-size:30px">${j.e}</span><div><b>${j.n}</b><div style="color:var(--mut);font-size:13px">Question ${S.i+1} of ${S.qs.length}</div></div></div><p class="qt">${esc(q.t)}</p><textarea id="ans" placeholder="Type your answer (numbers and specifics score best)"></textarea><div class="row"><button id="sub">Answer</button><button class="ghost" id="skip">Dodge the question</button></div><div id="rx"></div>`;
+ $('sub').onclick=()=>reply(false);$('skip').onclick=()=>reply(true);
+}
+function quality(a){if(!a.trim())return .05;const w=wc(a);let s=Math.min(w/30,1)*.5;
+ if(/\d/.test(a))s+=.2;if(/pilot|customer|revenue|users|tested|margin|cost|team|partner|retention|growth|paying|waitlist|contract|cac|ltv|built|launched/i.test(a))s+=.2;if(w>=60)s+=.1;return Math.min(1,s)}
+function reply(skip){
+ const q=S.qs[S.i],j=J[q.ji],a=skip?'':$('ans').value,ql=quality(a);
+ S.ans.push({ji:q.ji,q:q.t,a,ql});
+ const lvl=ql<.3?0:ql<.65?1:2;
+ $('m'+q.ji).textContent=MOOD[lvl];
+ $('sub').disabled=true;$('skip').disabled=true;$('ans').disabled=true;
+ $('rx').innerHTML=`<div class="react"><b>${MOOD[lvl]} ${j.n.replace('The ','')}:</b> ${skip?'Silence is not an answer. That costs you.':j.r[lvl]}</div><div class="row"><button id="nx">${S.i+1<S.qs.length?'Next question':'Hear the verdict'}</button></div>`;
+ $('nx').onclick=()=>{S.i++;ask()};$('nx').focus();
+}
+
+function parseAsk(t){
+ const m=t.replace(/,/g,'').match(/([\d.]+)\s*(k|thousand|lakhs?|lacs?|crores?|cr|mn|m|million|bn|b|billion)?/i);
+ const cur=/₹|\brs\b|inr|lakh|lac|crore|\bcr\b/i.test(t)?'₹':'$';
+ let n=m?parseFloat(m[1]):0;const u=(m&&m[2]||'').toLowerCase();
+ const mult=/^k|^thou/.test(u)?1e3:/^lak|^lac/.test(u)?1e5:/^cr/.test(u)?1e7:/^(m|mn|mill)/.test(u)?1e6:/^b/.test(u)?1e9:1;
+ return{v:(n||0)*mult,cur};
+}
+function fmt(n,c){if(!n)return c+'0';
+ if(c==='₹'){if(n>=1e7)return'₹'+(n/1e7).toFixed(2).replace(/\.?0+$/,'')+' Cr';if(n>=1e5)return'₹'+(n/1e5).toFixed(1).replace(/\.0$/,'')+' L';return'₹'+Math.round(n).toLocaleString('en-IN')}
+ if(n>=1e9)return'$'+(n/1e9).toFixed(2)+'B';if(n>=1e6)return'$'+(n/1e6).toFixed(2).replace(/\.?0+$/,'')+'M';if(n>=1e3)return'$'+Math.round(n/1e3)+'K';return'$'+Math.round(n)}
+const cl=(x,a=15,b=96)=>Math.max(a,Math.min(b,Math.round(x)));
+
+function score(){
+ const d=S.idea,all=Object.values(d).join(' ');
+ let m=36+kw(d.aud+' '+d.prob,/million|billion|crore|lakh|%|users|farmers|students|smes?|india|global|nationwide|market|b2b|b2c|every/g)*4+Math.min(wc(d.aud)/5,7)+Math.min(wc(d.prob)/10,6);
+ let i=34+kw(d.sol,/ai|novel|first|patent|unique|automat|data|platform|app|real-time|predict|direct|marketplace|without|proprietary|machine/g)*4.5+Math.min(wc(d.sol)/8,10);
+ let b=32+kw(d.rev,/subscription|commission|%|₹|\$|per |fee|saas|licen|margin|ads|premium|recurring|monthly|annual|transaction/g)*5+Math.min(wc(d.rev)/6,10);
+ let e=34+Math.min(wc(all)/14,16)+(/\d/.test(d.prob+d.sol)?4:0)+kw(all,/pilot|team|launched|built|prototype|partner|mvp|tested|waitlist/g)*4;
+ const by={};J.forEach(j=>by[j.k]=[]);S.ans.forEach(a=>by[J[a.ji].k].push(a.ql));
+ const avgQ=S.ans.reduce((s,a)=>s+a.ql,0)/S.ans.length;
+ const adj=k=>((by[k].reduce((s,x)=>s+x,0)/by[k].length)-.4)*28;
+ m+=adj('vc');e+=adj('fo');i+=adj('cu');b+=adj('an');
+ const pa=parseAsk(d.ask);
+ const askOk=pa.v>0?1:0;
+ let inv=(m+i+b+e)/4+(avgQ-.4)*12+(askOk?2:-8);
+ const sc={market:cl(m),innovation:cl(i),biz:cl(b),execution:cl(e),invest:cl(inv)};
+ sc.overall=cl((sc.market+sc.innovation+sc.biz+sc.execution+sc.invest)/5);
+ return{sc,pa,avgQ};
+}
+const LAB={market:'Market potential',innovation:'Innovation',biz:'Business model',execution:'Execution',invest:'Investment worthiness'};
+
+function finish(){
+ const{sc,pa}=score(),d=S.idea,o=sc.overall;
+ let dec='Come Back Later',cls='Come';
+ if(o>=68){dec='Invest';cls='Invest'}
+ else if(sc.innovation>=72&&sc.execution<55&&o>=52){dec='Acquire';cls='Acquire'}
+ else if(o<50){dec='Reject';cls='Reject'}
+ const eq=o>=80?8:o>=68?12:o>=55?18:25;
+ const funding=dec==='Invest'?pa.v*(o>=75?1:.75):dec==='Acquire'?pa.v*5:0;
+ const val=pa.v?(dec==='Invest'?funding/(eq/100):pa.v/(eq/100)*(dec==='Acquire'?.8:.5)):0;
+ const sorted=Object.entries(sc).filter(([k])=>k!=='overall').sort((a,b)=>b[1]-a[1]);
+ const votes=J.map(j=>{const s=sc[j.dim];const ok=s>=62;return{j,s,ok}});
+ const why={Invest:`${d.name} scores ${o}/100. Strongest area: ${LAB[sorted[0][0]].toLowerCase()} (${sorted[0][1]}). The sharks back the plan at ${fmt(funding,pa.cur)} for ${eq}% equity, implying a valuation near ${fmt(val,pa.cur)}. Watch ${LAB[sorted[4][0]].toLowerCase()} (${sorted[4][1]}).`,
+ Acquire:`The idea is genuinely differentiated (innovation ${sc.innovation}), but execution (${sc.execution}) and the business model (${sc.biz}) are not ready to stand alone. The sharks would rather buy the concept and build it themselves, offering about ${fmt(funding,pa.cur)}.`,
+ 'Come Back Later':`${d.name} scores ${o}/100: promising, not proven. The weakest area is ${LAB[sorted[4][0]].toLowerCase()} (${sorted[4][1]}). Return with traction, such as paying users, a pilot, or clear unit economics, and the answer can change.`,
+ Reject:`At ${o}/100 the sharks pass. The biggest gap is ${LAB[sorted[4][0]].toLowerCase()} (${sorted[4][1]}). Tighten the problem, show who pays and why, and answer questions with specifics.`}[dec];
+ S.out={dec,cls,sc,funding,val,eq,why,cur:pa.cur,votes,t:Date.now()};
+ saveLB();
+ const bars=Object.keys(LAB).map(k=>`<div class="bar"><div class="t"><span>${LAB[k]}</span><b>${sc[k]}/100</b></div><div class="b"><i data-w="${sc[k]}"></i></div></div>`).join('');
+ const lblF=dec==='Acquire'?'Acquisition offer':'Funding amount';
+ $('res').innerHTML=`<div class="verdict ${cls}"><div style="font-size:44px">${dec==='Invest'?'🤝':dec==='Acquire'?'🏦':dec==='Reject'?'🚪':'⏳'}</div><h2>${dec==='Invest'?"It's a deal":dec}</h2><p style="color:var(--mut);margin:6px 0 0">${esc(d.name)} · overall ${o}/100</p>
+ <div class="stats"><div><small>Suggested valuation</small><b>${val?fmt(val,pa.cur):'Not set'}</b></div><div><small>${lblF}</small><b>${funding?fmt(funding,pa.cur):'None yet'}</b></div><div><small>${dec==='Invest'?'Equity taken':'Asked for'}</small><b>${dec==='Invest'?eq+'%':esc(d.ask)}</b></div></div></div>
+ <div class="card"><h3>Reasoning</h3><p>${why}</p></div>
+ <div class="card" style="margin-top:14px"><h3>Scorecard</h3>${bars}</div>
+ <div class="votes">${votes.map(v=>`<div><b>${v.j.n}</b> <span class="${v.ok?'in':'out'}">${v.ok?'I am in':'I am out'}</span><br><span style="color:var(--mut)">${v.j.f}: ${v.s}/100</span></div>`).join('')}</div>
+ <div class="row"><button id="pdf">Download pitch report (PDF)</button><button class="ghost" id="shr">Share result</button><button class="ghost" id="lb2">Leaderboard</button><button class="ghost" id="again">Pitch again</button></div><p id="msg" style="color:var(--mut)"></p>`;
+ $('pdf').onclick=()=>{report();setTimeout(()=>window.print(),80)};
+ $('shr').onclick=share;$('lb2').onclick=showLB;$('again').onclick=()=>{$('f').reset();show('s1')};
+ show('s3');
+ setTimeout(()=>document.querySelectorAll('.bar i').forEach(i=>i.style.width=i.dataset.w+'%'),150);
+ if(dec==='Invest'||dec==='Acquire')confetti();
+}
+function report(){
+ const o=S.out,d=S.idea;
+ $('rep').innerHTML=`<h1>Shark Tank Pitch Report: ${esc(d.name)}</h1><p>${new Date(o.t).toLocaleDateString()} · Decision: <b>${o.dec}</b> · Overall ${o.sc.overall}/100</p>
+ <h2>Pitch</h2><p><b>Ask:</b> ${esc(d.ask)}<br><b>Problem:</b> ${esc(d.prob)}<br><b>Solution:</b> ${esc(d.sol)}<br><b>Revenue model:</b> ${esc(d.rev)}<br><b>Audience:</b> ${esc(d.aud)}</p>
+ <h2>Scores</h2><table>${Object.keys(LAB).map(k=>`<tr><td>${LAB[k]}</td><td>${o.sc[k]}/100</td></tr>`).join('')}</table>
+ <h2>Deal</h2><p>Valuation: ${o.val?fmt(o.val,o.cur):'Not set'} · Funding/offer: ${o.funding?fmt(o.funding,o.cur):'None'} ${o.dec==='Invest'?'· Equity: '+o.eq+'%':''}</p><p>${o.why}</p>
+ <h2>Judges' verdicts</h2><p>${o.votes.map(v=>`${v.j.n}: ${v.ok?'in':'out'} (${v.s}/100)`).join('<br>')}</p>
+ <h2>Q&amp;A</h2>${S.ans.map(a=>`<p><b>${esc(J[a.ji].n)}:</b> ${esc(a.q)}<br><i>${a.a?esc(a.a):'(no answer)'}</i></p>`).join('')}`;
+}
+function share(){
+ const o=S.out,t=`I pitched "${S.idea.name}" to the Shark Tank Simulator: ${o.dec} (${o.sc.overall}/100)${o.funding?', offer '+fmt(o.funding,o.cur):''}. Can you beat my score?`;
+ if(navigator.share){navigator.share({title:'Shark Tank Simulator',text:t}).catch(()=>{})}
+ else if(navigator.clipboard){navigator.clipboard.writeText(t).then(()=>$('msg').textContent='Result copied. Paste it anywhere.',()=>$('msg').textContent=t)}
+ else $('msg').textContent=t;
+}
+function getLB(){try{return JSON.parse(localStorage.getItem('sharkLB')||'[]')}catch(e){return[]}}
+function saveLB(){try{const l=getLB();l.push({n:S.idea.name,s:S.out.sc.overall,d:S.out.dec,t:S.out.t});l.sort((a,b)=>b.s-a.s);localStorage.setItem('sharkLB',JSON.stringify(l.slice(0,10)))}catch(e){}}
+let prev='s1';
+function showLB(){prev=['s1','s2','s3'].find(x=>!$(x).classList.contains('hide'))||'s1';
+ const l=getLB();
+ $('lbt').innerHTML=l.length?`<table><tr><th>#</th><th>Startup</th><th>Score</th><th>Decision</th></tr>${l.map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.n)}</td><td>${r.s}</td><td>${r.d}</td></tr>`).join('')}</table>`:'<p style="color:var(--mut)">No pitches yet. Finish a pitch to claim the first spot.</p>';
+ show('lb')}
+$('lbBtn').onclick=showLB;$('lbClose').onclick=()=>show(prev);
+
+function confetti(){
+ const c=$('cf'),x=c.getContext('2d');c.width=innerWidth;c.height=innerHeight;
+ const cols=['#e9b44c','#4cc9a0','#e4574b','#e8f1f5','#5aa9d6'];
+ const p=Array.from({length:180},()=>({x:Math.random()*c.width,y:-20-Math.random()*c.height*.5,w:6+Math.random()*7,h:8+Math.random()*8,vx:-2+Math.random()*4,vy:2+Math.random()*4,r:Math.random()*6,vr:-.2+Math.random()*.4,c:cols[Math.random()*5|0]}));
+ let f=0;(function t(){x.clearRect(0,0,c.width,c.height);p.forEach(a=>{a.x+=a.vx;a.y+=a.vy;a.r+=a.vr;x.save();x.translate(a.x,a.y);x.rotate(a.r);x.fillStyle=a.c;x.fillRect(-a.w/2,-a.h/2,a.w,a.h);x.restore()});
+ if(++f<260)requestAnimationFrame(t);else x.clearRect(0,0,c.width,c.height)})();
+}
+</script></body></html>
