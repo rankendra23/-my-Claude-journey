@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Prior Authorization Workflow Simulator</title>
+<style>
+:root{--b1:#eef5ff;--b2:#d6e6ff;--b3:#a9cbff;--b4:#5b94ea;--b5:#1d4ed8;--b6:#0b2a6b;--ink:#0a0a0a;
+ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:linear-gradient(160deg,#e3efff,#f6faff 60%,#d6e6ff);min-height:100vh}
+.wrap{max-width:1100px;margin:0 auto;padding:14px}
+header{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+h1{font-size:1.3rem;margin:0}
+.stats{display:flex;gap:8px;flex-wrap:wrap}
+.stat{background:#fff;border:1px solid var(--b3);border-radius:12px;padding:6px 12px;text-align:center;min-width:84px}
+.stat b{display:block;font-size:1.25rem;color:var(--b5)}
+.stat small{font-size:.7rem;text-transform:uppercase;letter-spacing:.05em}
+button{font:inherit;color:var(--ink);cursor:pointer;border:1px solid var(--b4);background:var(--b2);border-radius:10px;padding:7px 13px}
+button:hover{background:var(--b3)}
+button.pri{background:var(--b5);color:#fff;border-color:var(--b6)}
+button.pri:hover{background:var(--b6)}
+.bar{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0;align-items:center}
+.chip.on{background:var(--b5);color:#fff}
+.track{display:flex;gap:4px;list-style:none;padding:0;margin:8px 0;overflow-x:auto}
+.track li{flex:1;min-width:92px;text-align:center;padding:7px 4px;background:var(--b2);border-radius:8px;font-size:.8rem;border-bottom:4px solid var(--b3)}
+.track li.done{background:var(--b4);border-color:var(--b6)}
+.track li.cur{background:#fff;border-color:var(--b5);font-weight:700;box-shadow:0 0 0 2px var(--b5) inset}
+.lane{display:grid;grid-template-columns:96px 1fr;gap:8px;background:#fff;border:1px solid var(--b3);border-radius:14px;margin:9px 0;overflow:hidden}
+.lane>.lbl{background:var(--b5);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:700;padding:8px;text-align:center}
+.lane>.lbl span{font-size:1.5rem}
+.zones{display:flex;flex-wrap:wrap;gap:8px;padding:8px}
+.zone{flex:1 1 150px;min-height:112px;border:2px dashed var(--b3);border-radius:12px;padding:7px;background:var(--b1);transition:.15s}
+.zone h3{margin:0;font-size:.85rem}
+.zone p{margin:2px 0 6px;font-size:.72rem;opacity:.8}
+.zone.ok{border-color:var(--b5);background:#dbe9ff;animation:pulse 1s infinite}
+.zone.over{background:var(--b3)}
+.zone.here{border-style:solid;border-color:var(--b5)}
+@keyframes pulse{50%{box-shadow:0 0 0 4px rgba(29,78,216,.25)}}
+#card{background:#fff;border:2px solid var(--b5);border-radius:10px;padding:7px 9px;cursor:grab;user-select:none;box-shadow:0 3px 10px rgba(11,42,107,.2);font-size:.82rem}
+#card.sel{outline:3px solid var(--b4)}
+#card b{display:block}
+.shake{animation:sh .35s}
+@keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.panels{display:grid;grid-template-columns:2fr 1fr;gap:10px}
+@media(max-width:760px){.panels{grid-template-columns:1fr}.lane{grid-template-columns:62px 1fr}.stat{min-width:70px}}
+.box{background:#fff;border:1px solid var(--b3);border-radius:14px;padding:12px}
+.box h2{font-size:1rem;margin:0 0 6px}
+.box.bad{border-color:#1d4ed8;background:#e4edff}
+.box.good{background:#dcebff}
+#log{max-height:170px;overflow:auto;font-size:.8rem;padding-left:16px;margin:0}
+.ov{position:fixed;inset:0;background:rgba(11,42,107,.55);display:none;align-items:center;justify-content:center;padding:14px;z-index:10}
+.ov.show{display:flex}
+.modal{background:#fff;border-radius:16px;max-width:520px;width:100%;max-height:88vh;overflow:auto;padding:18px;border:2px solid var(--b5)}
+.item{display:block;width:100%;text-align:left;margin:5px 0;background:var(--b1)}
+.item.on{background:var(--b4);color:#fff;border-color:var(--b6)}
+.fb{min-height:20px;font-size:.85rem;margin:6px 0}
+.sum{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:10px 0}
+.conf{position:fixed;top:-20px;width:9px;height:14px;z-index:20;animation:fall 3s linear forwards;pointer-events:none}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+ <h1>🏥 Prior Authorization Simulator</h1>
+ <div class="stats">
+  <div class="stat"><b id="sDays">0</b><small>Days elapsed</small></div>
+  <div class="stat"><b id="sEff">100</b><small>Efficiency</small></div>
+  <div class="stat"><b id="sMis">0</b><small>Mistakes</small></div>
+ </div>
+</header>
+<div class="bar" id="chips"></div>
+<div class="bar">
+ <button class="pri" id="bNew">🆕 New Patient</button>
+ <button id="bRestart">↺ Restart</button>
+ <button id="bHint">💡 Hint (−3)</button>
+ <small>Drag the case card to the next stage (or tap the card, then tap a glowing stage).</small>
+</div>
+<ol class="track" id="track"></ol>
+<div id="lanes"></div>
+<div class="panels">
+ <div class="box" id="exp"></div>
+ <div class="box"><h2>📜 Timeline</h2><ol id="log"></ol></div>
+</div>
+</div>
+<div class="ov" id="ov"><div class="modal" id="modal"></div></div>
+
+<script>
+/* ===== EDITABLE SCENARIO DATA =====
+ twist: 'approve' (clean), 'pend' (payer asks for an extra doc), 'deny' (initial denial)
+ rv = review days, p2pWins = peer-to-peer overturns denial, ideal = days on best path
+ criteria / docs: [text, isCorrect(1/0)] */
+const SCENARIOS=[
+{icon:'🦵',name:'Elective Knee Surgery',patient:'Maria, 62',req:'Total knee replacement (CPT 27447)',rv:3,twist:'pend',ideal:16,
+ pendWhy:'The reviewer could not see proof that conservative treatment failed.',pendDoc:'PT notes: 6 months of failed conservative therapy',
+ criteria:[['Imaging shows advanced joint damage',1],['Daily function is significantly limited',1],['Surgeon documented clinical findings',1],['Patient prefers a specific surgery date',0],['Patient\'s cousin is a nurse',0]],
+ docs:[['Surgeon order & clinical notes',1],['Knee X-ray report',1],['Insurance ID & demographics',1],['Pain/function assessment',1],['Patient vacation itinerary',0],['Unrelated dental record',0]]},
+{icon:'🧲',name:'MRI – Lumbar Spine',patient:'Dev, 45',req:'MRI lumbar spine w/o contrast (CPT 72148)',rv:2,twist:'deny',p2pWins:true,ideal:7,
+ denyWhy:'The reviewer did not see red-flag symptoms in the submitted notes and applied the "6 weeks of conservative care first" rule.',
+ criteria:[['Progressive leg weakness (neurological deficit)',1],['Pain persists despite medication',1],['Physical exam findings documented',1],['Patient is curious about the results',0],['Scan would be convenient before a trip',0]],
+ docs:[['MRI order with ICD-10 diagnosis',1],['Exam notes',1],['Medication history',1],['Insurance ID',1],['Hospital parking receipt',0],['Patient satisfaction survey',0]]},
+{icon:'💉',name:'Specialty Medication',patient:'Ananya, 34',req:'Biologic drug for rheumatoid arthritis (pharmacy benefit)',rv:3,twist:'deny',p2pWins:false,appealDays:10,ideal:16,
+ denyWhy:'Step therapy: the plan requires a trial of a cheaper conventional drug first, and the chart shows none.',
+ criteria:[['Diagnosis confirmed by a specialist',1],['Disease still active despite prior treatment',1],['Prescriber is a rheumatologist',1],['Patient saw an online advertisement',0],['Patient prefers the brand name',0]],
+ docs:[['Prescription & diagnosis',1],['Lab results (RF / CRP)',1],['Prior drug history',1],['Insurance/pharmacy card',1],['Pharmacy loyalty card',0],['Unrelated vaccination record',0]]},
+{icon:'🛏️',name:'Inpatient Admission',patient:'Robert, 71',req:'Emergency inpatient admission – pneumonia with low oxygen',rv:1,twist:'approve',ideal:4,
+ criteria:[['Low oxygen / respiratory distress',1],['Needs IV antibiotics',1],['Unsafe to treat at home',1],['Prefers a private room',0],['Family wants to visit',0]],
+ docs:[['ER & admission notes',1],['Vitals & oxygen readings',1],['Chest X-ray report',1],['Insurance ID',1],['Cafeteria menu',0],['Visitor log',0]]}
+];
+
+/* ===== STATIC WORKFLOW DEFINITIONS ===== */
+const LANES=[['Patient','🧑',['visit']],['Provider','🩺',['necessity','docs','submit','p2p','appeal']],['Payer','🏢',['review','approved','pended','denied']]];
+const TRACK=['Visit','Necessity','Documents','Submit','Payer review','Decision'];
+const TIDX={visit:0,necessity:1,docs:2,submit:3,review:4,pended:4,denied:4,p2p:4,appeal:4,approved:5};
+const NEXT={visit:['necessity'],necessity:['docs'],docs:['submit'],submit:['review'],pended:['docs'],denied:['p2p','appeal']};
+const ZONES={
+visit:{n:'1. Visit & Order',d:'Doctor decides a service is needed',why:'The visit is done. The provider must now check medical necessity.',edu:'The patient sees the doctor, who orders a service. Many plans require approval (prior authorization) before it happens.'},
+necessity:{n:'2. Medical Necessity',d:'Does the case meet clinical criteria?',why:'Documents come after necessity is confirmed.',edu:'Providers compare the patient\'s clinical picture to payer criteria (e.g. InterQual / MCG). Only services that are clinically justified get approved.'},
+docs:{n:'3. Collect Documents',d:'Gather clinical evidence',why:'With documents ready, the provider submits the request to the payer.',edu:'The office assembles notes, tests and history. Missing or irrelevant paperwork is a leading cause of pends and denials.'},
+submit:{n:'4. Submit to Payer',d:'Portal / fax / e-PA',why:'The request is submitted; drop it on Payer Review.',edu:'Requests go through the payer portal, electronic PA (ePA) or fax. Sending a complete packet the first time saves days.'},
+review:{n:'5. Payer Review',d:'Nurse / medical director review',why:'Review decides automatically.',edu:'A payer nurse reviews against policy and may escalate to a medical director. Standard requests take days; urgent ones about 72 hours or less.'},
+approved:{n:'✅ Approved',d:'Service authorized',why:'',edu:'An authorization number is issued. Care can proceed (approval is not a payment guarantee, eligibility still applies).'},
+pended:{n:'⏸ Pended',d:'More info requested',why:'The payer is waiting for more information. Go back and collect it.',edu:'A pend means "we need more info". The clock may pause until it arrives.'},
+denied:{n:'⛔ Denied',d:'Not approved as submitted',why:'After a denial choose Peer-to-Peer (fast) or Appeal (formal).',edu:'Denials come with a reason. Providers can request a Peer-to-Peer call or file a formal appeal.'},
+p2p:{n:'📞 Peer-to-Peer',d:'Doctor talks to payer doctor',why:'',edu:'Peer-to-Peer: the treating doctor speaks directly with the payer\'s medical director. It is fast and often overturns denials.'},
+appeal:{n:'📑 Appeal',d:'Formal written challenge',why:'',edu:'An appeal is a formal written request with a letter of medical necessity. It takes longer but is a patient right, and external review may follow.'}
+};
+
+/* ===== STATE (memory only) ===== */
+let S;
+const $=s=>document.querySelector(s);
+const card=document.createElement('div');card.id='card';card.draggable=true;
+
+function init(i){
+ S={i,sc:SCENARIOS[i],loc:'visit',days:0,mistakes:0,hints:0,reviews:0,p2pUsed:false,pended:false,reached:0,busy:false,picked:false,done:false,log:[]};
+ buildChips();
+ explain('👋 New case: '+S.sc.name,'Patient '+S.sc.patient+' needs: '+S.sc.req+'. Drag the card to <b>Medical Necessity</b> to begin. '+ZONES.visit.edu);
+ render();
+}
+function buildChips(){
+ $('#chips').innerHTML='';
+ SCENARIOS.forEach((s,i)=>{const b=document.createElement('button');b.className='chip'+(i===S.i?' on':'');b.textContent=s.icon+' '+s.name;b.onclick=()=>{closeModal();init(i)};$('#chips').appendChild(b)});
+}
+function buildBoard(){
+ $('#track').innerHTML=TRACK.map(t=>'<li>'+t+'</li>').join('');
+ $('#lanes').innerHTML=LANES.map(l=>'<div class="lane"><div class="lbl"><span>'+l[1]+'</span>'+l[0]+'</div><div class="zones">'+
+  l[2].map(z=>'<div class="zone" data-z="'+z+'"><h3>'+ZONES[z].n+'</h3><p>'+ZONES[z].d+'</p><div class="slot"></div></div>').join('')+'</div></div>').join('');
+ document.querySelectorAll('.zone').forEach(z=>{
+  z.addEventListener('dragover',e=>{e.preventDefault();z.classList.add('over')});
+  z.addEventListener('dragleave',()=>z.classList.remove('over'));
+  z.addEventListener('drop',e=>{e.preventDefault();z.classList.remove('over');tryMove(z.dataset.z)});
+  z.addEventListener('click',()=>{if(S.picked)tryMove(z.dataset.z)});
+ });
+}
+card.addEventListener('dragstart',()=>{S.picked=true;render()});
+card.addEventListener('dragend',()=>{S.picked=false;render()});
+card.addEventListener('click',e=>{e.stopPropagation();if(S.busy||S.done)return;S.picked=!S.picked;render()});
+
+/* ===== HELPERS ===== */
+function allowed(){
+ if(S.busy||S.done)return[];
+ let a=NEXT[S.loc]||[];
+ if(S.loc==='denied'&&S.p2pUsed)a=['appeal'];
+ return a;
+}
+function eff(){return Math.max(0,100-S.mistakes*6-S.hints*3-Math.max(0,S.days-S.sc.ideal))}
+function addDays(n){S.days+=n}
+function explain(title,text,kind){
+ const e=$('#exp');e.className='box '+(kind||'');
+ e.innerHTML='<h2>'+title+'</h2><div>'+text+'</div>';
+ S.log.push({d:S.days,t:title});
+}
+function render(){
+ document.querySelectorAll('.zone').forEach(z=>{
+  const id=z.dataset.z;
+  z.classList.toggle('here',id===S.loc);
+  z.classList.toggle('ok',S.picked&&allowed().includes(id));
+ });
+ $('[data-z="'+S.loc+'"] .slot').appendChild(card);
+ card.classList.toggle('sel',S.picked);
+ card.innerHTML='<b>'+S.sc.icon+' '+S.sc.patient+'</b>'+S.sc.req;
+ S.reached=Math.max(S.reached,TIDX[S.loc]);
+ document.querySelectorAll('#track li').forEach((li,i)=>{
+  li.className=(i<S.reached||(S.done&&i<=S.reached))?'done':(i===S.reached?'cur':'');
+ });
+ $('#sDays').textContent=S.days;$('#sEff').textContent=eff();$('#sMis').textContent=S.mistakes;
+ $('#log').innerHTML=S.log.map(l=>'<li>Day '+l.d+': '+l.t+'</li>').join('');
+ $('#log').scrollTop=1e5;
+}
+
+/* ===== MOVE LOGIC ===== */
+function tryMove(to){
+ if(S.busy||S.done||to===S.loc)return;
+ if(!allowed().includes(to)){
+  S.mistakes++;S.picked=false;
+  card.classList.remove('shake');void card.offsetWidth;card.classList.add('shake');
+  explain('❌ That move is not allowed','Moving to <b>'+ZONES[to].n+'</b> from <b>'+ZONES[S.loc].n+'</b> skips or breaks the workflow. '+ZONES[S.loc].why+' (−6 efficiency)','bad');
+  render();return;
+ }
+ S.picked=false;enter(to);
+}
+function enter(to){
+ const sc=S.sc,Z=ZONES[to];S.loc=to;
+ if(to==='necessity'){
+  addDays(1);render();
+  checklist('Medical necessity check','Select ALL clinical facts that support medical necessity for: <b>'+sc.req+'</b>',sc.criteria,
+   ()=>{explain('✅ Medical necessity confirmed',Z.edu+' Next: collect documents.','good');render()});
+ }else if(to==='docs'){
+  addDays(2);render();
+  const items=sc.docs.slice();
+  if(S.pended)items.push([sc.pendDoc,1]);
+  checklist('Collect documents',(S.pended?'<b>Payer request:</b> '+sc.pendWhy+'<br>':'')+'Attach ONLY the documents that support this request.',items,
+   ()=>{explain('✅ Packet assembled',Z.edu+' Next: submit to the payer.','good');render()});
+ }else if(to==='submit'){
+  render();explain('📤 Submitted to payer',Z.edu+' Drag the case to Payer Review.','good');
+ }else if(to==='review'){
+  S.busy=true;addDays(sc.rv);render();
+  explain('🔍 Payer is reviewing…',Z.edu+' (+'+sc.rv+' days)');
+  setTimeout(decide,1300);
+ }else if(to==='p2p'){
+  addDays(2);
+  if(sc.p2pWins){approve('📞 Peer-to-peer succeeded!','Your doctor explained the clinical picture directly and the medical director overturned the denial.')}
+  else{S.p2pUsed=true;S.loc='denied';explain('📞 Peer-to-peer did not overturn','The medical director upheld the denial because policy requires the missing step. Only a formal <b>Appeal</b> remains. (+2 days)','bad');render()}
+ }else if(to==='appeal'){
+  addDays(sc.appealDays||10);
+  approve('📑 Appeal won!','Your letter of medical necessity convinced the appeal reviewer. Appeals are slower: +'+(sc.appealDays||10)+' days.');
+ }
+}
+function decide(){
+ const sc=S.sc;S.busy=false;S.reviews++;
+ if(sc.twist==='approve'||(sc.twist==='pend'&&S.reviews>1)){approve('✅ Approved by payer',ZONES.approved.edu+(S.pended?' Your added document did the trick.':''));}
+ else if(sc.twist==='pend'){S.pended=true;S.loc='pended';addDays(5);explain('⏸ Pended: more info needed',sc.pendWhy+' '+ZONES.pended.edu+' (+5 days waiting). Drag the case back to Collect Documents.','bad');render();}
+ else{S.loc='denied';explain('⛔ Denied',sc.denyWhy+' '+ZONES.denied.edu+(sc.p2pWins?' Tip: Peer-to-Peer is quick.':' Think about which route fits.'),'bad');render();}
+}
+function approve(title,text){
+ S.loc='approved';S.done=true;render();
+ explain(title,text+' 🎉','good');render();
+ confetti();setTimeout(summary,1500);
+}
+
+/* ===== MODAL CHECKLIST ===== */
+function checklist(title,intro,items,done){
+ const sel=new Set();S.busy=true;
+ const m=$('#modal');
+ m.innerHTML='<h2 style="margin-top:0">'+title+'</h2><p>'+intro+'</p><div id="items"></div><div class="fb" id="fb"></div><button class="pri" id="ok">Confirm</button>';
+ items.forEach((it,i)=>{const b=document.createElement('button');b.className='item';b.textContent=it[0];
+  b.onclick=()=>{sel.has(i)?sel.delete(i):sel.add(i);b.classList.toggle('on')};$('#items').appendChild(b)});
+ $('#ok').onclick=()=>{
+  const miss=items.filter((it,i)=>it[1]&&!sel.has(i)).map(it=>it[0]);
+  const extra=items.filter((it,i)=>!it[1]&&sel.has(i)).map(it=>it[0]);
+  if(miss.length||extra.length){
+   S.mistakes++;render();
+   $('#fb').innerHTML='❌ Not quite (−6). '+(miss.length?'<br><b>Missing:</b> '+miss.join('; '):'')+(extra.length?'<br><b>Not relevant:</b> '+extra.join('; '):'');
+   return;
+  }
+  closeModal();S.busy=false;done();
+ };
+ $('#ov').classList.add('show');
+}
+function closeModal(){$('#ov').classList.remove('show')}
+
+/* ===== CELEBRATION & SUMMARY ===== */
+function confetti(){
+ const cols=['#1d4ed8','#5b94ea','#a9cbff','#0b2a6b','#d6e6ff'];
+ for(let i=0;i<80;i++){const c=document.createElement('div');c.className='conf';
+  c.style.left=Math.random()*100+'vw';c.style.background=cols[i%5];
+  c.style.animationDelay=Math.random()*.8+'s';c.style.animationDuration=2+Math.random()*2+'s';
+  document.body.appendChild(c);setTimeout(()=>c.remove(),4800)}
+}
+function summary(){
+ const e=eff(),r=e>=90?'🏆 Prior Auth Pro':e>=70?'👍 Solid Coordinator':'📚 Keep practicing';
+ $('#modal').innerHTML='<h2 style="margin-top:0">🎉 Workflow complete: '+S.sc.name+'</h2><p>'+r+'</p>'+
+ '<div class="sum"><div class="stat"><b>'+S.days+'</b><small>Days (ideal '+S.sc.ideal+')</small></div><div class="stat"><b>'+e+'</b><small>Efficiency</small></div>'+
+ '<div class="stat"><b>'+S.mistakes+'</b><small>Mistakes</small></div><div class="stat"><b>'+S.hints+'</b><small>Hints</small></div></div>'+
+ '<b>Your path</b><ol style="font-size:.85rem">'+S.log.slice(1).map(l=>'<li>Day '+l.d+': '+l.t+'</li>').join('')+'</ol>'+
+ '<p style="font-size:.85rem"><b>Takeaway:</b> complete documentation up front, the right escalation route after a denial, and fast responses to pends are what shorten the wait for patients.</p>'+
+ '<button class="pri" id="again">🆕 New Patient</button> <button id="cl">Close</button>';
+ $('#again').onclick=newPatient;$('#cl').onclick=closeModal;
+ $('#ov').classList.add('show');
+}
+
+/* ===== BUTTONS ===== */
+function newPatient(){closeModal();init((S.i+1+Math.floor(Math.random()*(SCENARIOS.length-1)))%SCENARIOS.length)}
+$('#bNew').onclick=newPatient;
+$('#bRestart').onclick=()=>{closeModal();init(S.i)};
+$('#bHint').onclick=()=>{
+ if(S.busy||S.done)return;
+ S.hints++;S.picked=true;
+ const a=allowed();
+ explain('💡 Hint','Drag the case to: <b>'+a.map(z=>ZONES[z].n).join('</b> or <b>')+'</b>. '+ZONES[S.loc].why);
+ render();
+};
+buildBoard();init(0);
+</script>
+</body>
+</html>
