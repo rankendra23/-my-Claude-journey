@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Prior Authorization Story Simulator</title>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{height:100%;margin:0}
+body{background:#eef5ff;color:#0a0a0a;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+@keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.pop{animation:pop .3s ease both}
+</style>
+</head>
+<body>
+<div class="flex flex-col h-full max-w-2xl mx-auto">
+  <header class="bg-white border-b border-blue-200 px-4 py-3">
+    <div class="flex items-center justify-between gap-2">
+      <h1 class="font-bold text-lg">🏥 Prior Authorization Story</h1>
+      <span class="text-xs bg-blue-100 border border-blue-300 rounded-full px-2 py-1">StarCare Health = illustrative example</span>
+    </div>
+    <div class="mt-2 h-2.5 bg-blue-100 rounded-full overflow-hidden"><div id="bar" class="h-full bg-blue-600 transition-all duration-500" style="width:0%"></div></div>
+    <p id="prog" class="text-xs mt-1">Scene 1 of 8</p>
+  </header>
+  <!-- Chat feed: append-only, bubbles added with createElement + appendChild -->
+  <main id="chat" class="flex-1 overflow-y-auto px-3 py-4 space-y-3"></main>
+  <footer id="choices" class="bg-white border-t border-blue-200 p-3 space-y-2 min-h-[72px]"></footer>
+</div>
+
+<script>
+/* ===== STORY DATA (editable) =====
+ Line: [who, text, optionalCondition]  who: n=narrator, d=doctor, r=Rahul, p=Priya
+ Condition: a flag name, or '!flag' for "flag not set". Choices set flags that change later dialogue. */
+const SCENES=[
+{t:'Doctor Visit',L:[
+ ['n','Rahul has had stiff, swollen joints for months. Today he visits City Medical Center.'],
+ ['d','Dr. Patel: "Your tests show Rheumatoid Arthritis (RA). It is an autoimmune condition: the immune system mistakenly attacks the joints."'],
+ ['d','Dr. Patel: "I am prescribing Humira, a biologic medicine. My office will handle the paperwork."'],
+ ['r','Okay… what paperwork?']],
+ C:[{l:'Will my insurance cover Humira?',f:'coverage',R:[['d','Dr. Patel: "Good question. Many plans need approval first. That is called prior authorization, or PA. My team starts it today."']]},
+    {l:'How soon can I start?',f:'timing',R:[['d','Dr. Patel: "As soon as insurance approves it. We will move quickly, but approval does take some time."']]}]},
+{t:'Insurance Roadblock',L:[
+ ['n','Dr. Patel\'s office sends a PA request straight to StarCare Health, the payer (an illustrative example). No pharmacy is involved at this stage.'],
+ ['n','🏥 Provider  →  📄 PA Request  →  🏢 Payer (StarCare Health)'],
+ ['r','So the pharmacy does not decide this?'],
+ ['p','Right! I\'m Priya, I work in healthcare operations. The doctor\'s office asks the insurer directly. The pharmacy only fills the drug later.'],
+ ['p','Once approved, the PA is saved on file with the payer. In our story, it stays there permanently.']],
+ C:[{l:'Why does insurance need to approve it?',R:[['p','Insurers check that a treatment is medically necessary and covered by the plan before they agree to pay.']]},
+    {l:'Does this happen for every medicine?',R:[['p','No. It is mostly for expensive or specialty drugs like Humira, and for some procedures.']]}]},
+{t:'What is PA?',L:[
+ ['p','Prior authorization (PA) simply means the insurer says "yes" before the care happens.'],
+ ['p','Plans often use step therapy: you try cheaper, older drugs first (like methotrexate) and move up only if they fail.'],
+ ['p','Step therapy is not just bureaucracy. It can control costs and encourage safe, proven options. But for aggressive diagnoses like RA, delays can affect disease progression.'],
+ ['p','📊 AMA 2023 PA Survey: PA causes treatment delays in the majority of cases.']],
+ C:[{l:'That worries me. Can delays hurt me?',f:'worried',R:[['p','For fast-moving disease they can. That is why doctors can ask for urgent review, and why complete paperwork matters.']]},
+    {l:'How does the insurer decide?',f:'curious',R:[['p','Great question. Let me walk you through their checklist.']]}]},
+{t:'Insurance Review',L:[
+ ['p','StarCare Health (illustrative) checks four things:'],
+ ['p','1️⃣ Eligibility: is Rahul covered on the date of service? If not, nothing else matters.'],
+ ['p','2️⃣ Clinical documentation: notes, labs and exam findings that prove the diagnosis and how serious it is.'],
+ ['p','3️⃣ ICD-10 diagnosis match: the diagnosis code (RA codes start with M05 or M06) must fit the drug requested. A mismatch looks like the wrong treatment.'],
+ ['p','4️⃣ Step therapy history: proof that required cheaper drugs were tried, or could not be used.']],
+ C:[{l:'Which check fails most often?',R:[['p','Missing documentation, especially step therapy history. Keep that in mind for what comes next…']]},
+    {l:'Can I help gather documents?',f:'helper',R:[['p','Yes! Patients can request their records and pharmacy history. It often speeds things up.']]}]},
+{t:'Denial',L:[
+ ['n','Days later, a letter arrives from StarCare Health (illustrative).'],
+ ['n','⛔ DENIED: missing step therapy documentation.'],
+ ['r','Denied?! I was already worried about delays…','worried'],
+ ['r','Denied?! Does that mean no Humira for me?','!worried'],
+ ['p','No. A denial is not permanent. It means "not approved as submitted," and you can appeal.'],
+ ['p','On the system side: PA denials cost physician offices 2+ staff hours to resolve.']],
+ C:[{l:'Let\'s appeal right away.',f:'fast',R:[['p','Yes, speed matters. Let\'s plan it.']]},
+    {l:'Why was this not caught earlier?',f:'why',R:[['p','Great catch. A pre-submission checklist helps, and many offices now use one.']]}]},
+{t:'Appeal',L:[
+ ['p','You want speed. Here is the fast-track plan:','fast'],
+ ['p','Good question to ask. Here is how an appeal works:','why'],
+ ['p','Step 1, gather documents: Rahul\'s past medicines (like a methotrexate trial), lab results and doctor notes.'],
+ ['p','Step 2, Letter of Medical Necessity: Dr. Patel explains why Humira is right and why earlier drugs failed or are unsuitable.'],
+ ['p','Step 3, formal appeal filing: the office submits it before the deadline printed on the denial letter.']],
+ C:[{l:'Can the doctor talk to the insurer directly?',R:[['p','Sometimes. A peer-to-peer call lets the doctor speak with the insurer\'s doctor.']]},
+    {l:'How long will the appeal take?',R:[['p','It varies by plan, and urgent requests are reviewed faster. The denial letter lists the timelines.']]}]},
+{t:'Approval',L:[
+ ['n','✅ StarCare Health (illustrative) approves the appeal!'],
+ ['n','Reference number: SC-PA-48213 (fictional). The approval is saved on file.'],
+ ['r','I can finally start! Will I need to do this again?'],
+ ['p','No repeat PA is needed for Humira in our story. (In real life many approvals have an end date, so renewals can come up. Check your plan.)']],
+ C:[{l:'Save the reference number.',R:[['n','Rahul saves the reference number in his phone.']]},
+    {l:'Tell friends to ask about PA early.',f:'sharing',R:[['r','I will tell my friends to ask about PA early!'],['p','Perfect, awareness saves time.']]}]},
+{t:'Takeaways',L:[
+ ['n','Two perspectives on the same journey.'],
+ ['r','🧑 Patient view: PA means the insurer says yes before care. A denial is not the end. Keep records of past medicines. Ask early about timelines.'],
+ ['r','I also helped gather my records, which sped things up.','helper'],
+ ['p','🏢 System view: health systems track denial rate (denied ÷ submitted), appeal rate (appealed ÷ denied) and resolution time (submission to final decision) to find where paperwork breaks down.']],
+ C:[{l:'Show me a denial rate example.',R:[['p','Illustrative numbers: 20 denials out of 100 requests is a 20% denial rate. If 10 of those are appealed, the appeal rate is 50%.']]},
+    {l:'I\'m ready. Finish the story.',R:[['n','🎉 Story complete. You followed Rahul from diagnosis to approval.']]}]}
+];
+
+/* ===== STATE (memory only) ===== */
+let F={},token=0;
+const $=s=>document.querySelector(s);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const ok=c=>!c||(c[0]==='!'?!F[c.slice(1)]:!!F[c]);
+
+/* Append one chat item. Always createElement + appendChild; never innerHTML on the chat container. */
+function add(who,text){
+ const chat=$('#chat');let el;
+ if(who==='r'||who==='p'){
+  const right=who==='p';
+  el=document.createElement('div');
+  el.className='pop flex items-end gap-2 '+(right?'flex-row-reverse':'');
+  const av=document.createElement('div');
+  av.className='text-2xl shrink-0';av.textContent=right?'👧':'👦';
+  const b=document.createElement('div');
+  b.className='max-w-[80%] rounded-2xl px-3 py-2 border '+(right?'bg-blue-200 border-blue-400 rounded-br-sm':'bg-white border-blue-300 rounded-bl-sm');
+  const n=document.createElement('div');
+  n.className='text-xs font-bold text-blue-900';n.textContent=right?'Priya · Healthcare Ops':'Rahul · Patient';
+  const t=document.createElement('div');t.textContent=text;
+  b.appendChild(n);b.appendChild(t);el.appendChild(av);el.appendChild(b);
+ }else{
+  el=document.createElement('p');
+  el.className='pop text-center italic text-sm px-4';
+  el.textContent=text;
+ }
+ chat.appendChild(el);chat.scrollTop=chat.scrollHeight;
+}
+function divider(i){
+ const d=document.createElement('div');
+ d.className='pop text-center my-2';
+ const s=document.createElement('span');
+ s.className='inline-block bg-blue-600 text-white text-xs font-semibold rounded-full px-3 py-1';
+ s.textContent='Scene '+(i+1)+': '+SCENES[i].t;
+ d.appendChild(s);$('#chat').appendChild(d);
+}
+async function play(lines,my){
+ for(const l of lines){
+  if(my!==token)return false;
+  if(!ok(l[2]))continue;
+  add(l[0],l[1]);await sleep(700);
+ }
+ return my===token;
+}
+function setProgress(i){
+ $('#bar').style.width=((i+1)/SCENES.length*100)+'%';
+ $('#prog').textContent='Scene '+(i+1)+' of '+SCENES.length+' · '+SCENES[i].t;
+}
+function btn(label,cls,fn){
+ const b=document.createElement('button');
+ b.className='w-full text-left rounded-xl border px-3 py-2 '+cls;
+ b.textContent=label;b.onclick=fn;return b;
+}
+async function scene(i){
+ const my=token;
+ setProgress(i);divider(i);
+ if(!await play(SCENES[i].L,my))return;
+ const box=$('#choices');box.replaceChildren();
+ const q=document.createElement('p');q.className='text-xs font-semibold';q.textContent='What does Rahul do?';box.appendChild(q);
+ SCENES[i].C.forEach(c=>{
+  box.appendChild(btn(c.l,'bg-blue-100 hover:bg-blue-200 border-blue-400 text-black',async()=>{
+   $('#choices').replaceChildren();
+   if(c.f)F[c.f]=true;
+   add('r',c.l);await sleep(500);
+   if(!await play(c.R,my))return;
+   if(i<SCENES.length-1){await sleep(400);scene(i+1)}else finish();
+  }));
+ });
+}
+function finish(){
+ const box=$('#choices');box.replaceChildren();
+ box.appendChild(btn('🔄 Restart the story','bg-blue-600 hover:bg-blue-700 border-blue-800 text-white text-center font-semibold',start));
+}
+function start(){
+ token++;F={};
+ $('#chat').replaceChildren();   // removes children only; no innerHTML on chat
+ $('#choices').replaceChildren();
+ scene(0);
+}
+start();
+</script>
+</body>
+</html>
