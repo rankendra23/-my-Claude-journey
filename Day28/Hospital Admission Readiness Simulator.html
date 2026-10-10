@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hospital Admission Readiness Simulator</title>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<style>
+:root{--bg:#FAF5EC;--card:#FFFFFF;--beige:#EDE0CC;--brown:#7A4B2A;--ink:#3B2616;--mut:#8A7560;--line:#E0D2BC;--ok:#3F7D4E;--warn:#B7791F;--bad:#A8402F;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#241A12;--card:#33261B;--beige:#45342500;--brown:#D9A06B;--ink:#F3E7D3;--mut:#BBA68C;--line:#4F3D2D;--ok:#7CC38C;--warn:#E5B35A;--bad:#E58A78}}
+html,body{background:var(--bg);color:var(--ink);font-family:Georgia,'Times New Roman',serif}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.lbl{font:600 12px system-ui,sans-serif;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
+.in{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px;font:15px system-ui,sans-serif;color:var(--ink)}
+.btn{background:var(--brown);color:#FAF5EC;border-radius:10px;padding:10px 14px;font:600 14px system-ui,sans-serif}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--brown);border:1px solid var(--brown)}
+.btn.done{background:var(--ok);color:#fff}
+.chip{font:600 12px system-ui,sans-serif;padding:3px 9px;border-radius:99px;border:1px solid currentColor}
+.g{color:var(--ok)}.a{color:var(--warn)}.r{color:var(--bad)}
+.note{border-left:4px solid var(--brown);background:var(--beige);padding:10px 12px;border-radius:8px;font:14px system-ui,sans-serif}
+.sans{font-family:system-ui,sans-serif}
+.bar{height:8px;border-radius:9px;background:var(--line);overflow:hidden}.bar>i{display:block;height:100%;background:var(--brown);transition:width .4s}
+</style></head>
+<body class="min-h-screen"><div class="max-w-4xl mx-auto p-4 sm:p-6 space-y-4">
+<header><div class="lbl">Healthcare Simulation · Training Only</div>
+<h1 class="text-2xl sm:text-3xl font-bold">🏥 Hospital Admission Readiness Simulator</h1>
+<p class="sans text-sm" style="color:var(--mut)">You are the Hospital Admission Coordinator. All provider, physician and payer names are illustrative training data.</p></header>
+<main id="app"></main></div>
+<script>
+const $=s=>document.querySelector(s);
+const PROV=['Riverside General Hospital','Lakeview Medical Center','St. Example Regional'];
+const DOC=['Dr. A. Sample','Dr. B. Demo','Dr. C. Training'];
+const PAYER=['Medicare (illustrative)','Acme Health PPO (illustrative)','Demo Medicaid Plan (illustrative)'];
+const DX=['Acute MI','CHF','Pneumonia','Elective Surgery','Hip Fracture'];
+const TYPE=['Inpatient','Observation','Emergency','ICU','Same-Day Surgery'];
+const PAS=['Approved','Pending','Denied'];
+const W={pa:25,docs:20,ord:20,ins:15,con:10,bed:10};
+const NAMES={pa:'Prior Authorization',docs:'Clinical Documentation',ord:'Physician Orders',ins:'Insurance',con:'Consent',bed:'Bed'};
+const OBS='CMS 2-Midnight Rule applies — different cost-sharing, SNF eligibility, and billing than inpatient. Medicare patients require written MOON notification.';
+const CRIT='InterQual/Milliman thresholds apply — ensure documentation meets medical necessity standards before UR review.';
+const GOV='Industry benchmarks (estimates only): PA turnaround 3–5 days · Inpatient denial rate ~8–10% (CMS) · PA rework cost ~$11/transaction (CAQH)';
+let S=null;
+const opt=(a,v)=>a.map(x=>`<option ${x===v?'selected':''}>${x}</option>`).join('');
+const sel=(id,l,a,v)=>`<label class="block"><span class="lbl">${l}</span><select id="${id}" class="in mt-1">${opt(a,v)}</select></label>`;
+
+function setup(){
+ const d=new Date().toISOString().slice(0,10);
+ $('#app').innerHTML=`<section class="card space-y-4"><h2 class="text-xl font-bold">New Admission Request</h2>
+ <div class="grid sm:grid-cols-2 gap-3">${sel('provider','Provider (illustrative)',PROV)}${sel('attending','Attending Physician (illustrative)',DOC)}
+ ${sel('payer','Payer (illustrative)',PAYER)}${sel('dx','Diagnosis',DX)}${sel('type','Admission Type',TYPE)}${sel('pa','PA Status',PAS,'Pending')}
+ <label class="block"><span class="lbl">Admission Date</span><input id="date" type="date" value="${d}" class="in mt-1"></label></div>
+ <div id="obs"></div><button id="go" class="btn">🏥 Analyze Admission Readiness</button></section>`;
+ const o=()=>{$('#obs').innerHTML=$('#type').value==='Observation'?`<div class="note">⚠ ${OBS}</div>`:''};
+ $('#type').onchange=o;$('#go').onclick=start;o();
+}
+function start(){
+ const g=id=>$('#'+id).value;
+ const pa=g('pa');
+ S={p:g('provider'),att:g('attending'),payer:g('payer'),dx:g('dx'),type:g('type'),pas:pa,date:g('date')||'—',
+  f:{pa:pa==='Approved'?1:pa==='Pending'?.4:.1,docs:.4,ord:.4,ins:.5,con:.2,bed:.2},
+  d:{},ps:{},log:['Admission request received — initial analysis complete.'],dec:null};
+ render();
+}
+const hi=()=>['Acute MI','CHF'].includes(S.dx)||S.type==='ICU';
+function score(){let r=0;for(const k in W)r+=W[k]*S.f[k];
+ let capped=false;if(S.pas==='Denied'&&S.type==='ICU'&&r>69){r=69;capped=true}
+ return{v:Math.round(r),capped}}
+const lvl=p=>p>=60?['High','r']:p>=30?['Medium','a']:['Low','g'];
+function risks(){const f=S.f,c=x=>Math.max(0,Math.min(100,Math.round(x)));
+ return[['Documentation Risk',c(100*(1-f.docs)),''],
+ ['Insurance Risk',c(100*(1-f.ins)+(S.pas==='Denied'?25:0)),''],
+ ['Bed Risk',c(100*(1-f.bed)),''],
+ ['Clinical Risk',c(100*(1-(f.ord*.5+f.con*.5))*(hi()?1.5:1)),hi()?'weighted ×1.5 for '+(S.type==='ICU'?'ICU':S.dx):'']]}
+function stat(k){const f=S.f[k];
+ if(k==='pa')return[S.pas,S.pas==='Approved'?'g':S.pas==='Pending'?'a':'r'];
+ return f>=1?['Complete','g']:f>=.6?['In progress','a']:['Needs action','r']}
+function act(k,paKey){
+ const f=S.f;
+ const m={bed:()=>f.bed=1,ins:()=>f.ins=1,docs:()=>f.docs=Math.max(f.docs,.8),con:()=>f.con=1,
+  phys:()=>{f.ord=1;f.docs=Math.min(1,f.docs+.2)},nurse:()=>0,arrive:()=>0};
+ if(m[k])m[k]();
+}
+const L={bed:'Assign Bed',ins:'Verify Insurance',docs:'Upload Documentation',con:'Complete Consent',phys:'Contact Physician',nurse:'Notify Nursing',arrive:'Prepare Patient Arrival'};
+function avail(k){if(k==='nurse')return !!S.d.bed;if(k==='arrive')return S.d.bed&&S.d.con;return true}
+function paBtns(){
+ const P=S.ps,mk=(k,l,en=true)=>`<button class="btn ${P[k]?'done':'ghost'}" data-pa="${k}" ${P[k]||!en?'disabled':''}>${P[k]?'✓ ':''}${l}</button>`;
+ if(S.pas==='Approved')return '<p class="sans text-sm g">PA approved — no PA actions needed.</p>';
+ if(S.pas==='Pending')return[mk('fu','Follow Up'),mk('up','Upload Docs'),mk('cp','Contact Physician')].join('');
+ return[mk('rr','Review Reason'),mk('ci','Contact Insurance',P.rr),mk('ap','Submit Appeal',P.rr&&P.ci)].join('');
+}
+function paAct(k){
+ const P=S.ps;P[k]=1;const L=S.log;
+ if(S.pas==='Pending'){
+  if(k==='up')act('docs');if(k==='cp')act('phys');
+  const n=['fu','up','cp'].filter(x=>P[x]).length;S.f.pa=.4+.2*n;
+  L.push({fu:'PA follow-up call placed with payer.',up:'Supporting documents uploaded to PA portal.',cp:'Attending contacted for PA clinical details.'}[k]);
+  if(n===3){S.pas='Approved';S.f.pa=1;L.push('✅ PA Approved by payer.')}
+ }else{
+  S.f.pa={rr:.3,ci:.5,ap:.5}[k];
+  L.push({rr:'Denial reason reviewed.',ci:'Payer contacted to discuss denial.',ap:'Appeal submitted.'}[k]);
+  if(k==='ap'){S.pas='Approved';S.f.pa=1;L.push('✅ Appeal successful — PA converted to Approved.')}
+ }
+}
+function timeline(){const f=S.f,d=S.d;
+ const m=[['PA Review',S.pas==='Approved'],['Insurance Verification',f.ins>=1],['Bed Assignment',f.bed>=1],['Documentation',f.docs>=.8],['Consent',f.con>=1],
+ ['Patient Arrival',!!d.arrive],['Registration',!!d.arrive&&f.ins>=1],['Clinical Assessment',!!d.nurse&&f.ord>=1],['Admission Complete',S.dec==='admit']];
+ return m.map(([n,ok],i)=>`<li class="flex items-center gap-2 sans text-sm"><span class="${ok?'g':'r'}" style="width:20px">${ok?'●':'○'}</span><span>${i+1}. ${n}</span></li>`).join('')}
+function cards(){
+ const c=[['Attending',`${S.att}`,'Signs admission orders and documents medical necessity.'],
+ ['Case Manager','Coordinates PA, payer contact and patient/family communication.',S.pas+' PA'],
+ ['Nursing','Receives bed hand-off and starts admission assessment.',S.d.nurse?'Notified':'Awaiting notification'],
+ ['Utilization Review','Performs concurrent review, denial risk identification, and screens against InterQual and Milliman criteria.',S.f.docs>=.8?'Docs ready for review':'Docs not ready'],
+ ['Discharge Planner','Starts early discharge and SNF/home planning'+(S.type==='Observation'?' (SNF eligibility differs under observation).':'.'),'Engaged at admission']];
+ return c.map(([t,b,s])=>`<div class="card"><div class="font-bold">${t}</div><p class="sans text-sm mt-1" style="color:var(--mut)">${b}</p><div class="chip mt-2 inline-block a">${s}</div></div>`).join('')}
+
+function render(){
+ const sc=score(),f=S.f,ready=sc.v>=75;
+ const rows=Object.keys(W).map(k=>{const[s,c]=stat(k);return`<div class="flex justify-between sans text-sm py-1 border-b" style="border-color:var(--line)"><span>${NAMES[k]} <span style="color:var(--mut)">(${W[k]}%)</span></span><span class="chip ${c}">${s}</span></div>`}).join('');
+ const wf=Object.keys(L).map(k=>{const on=avail(k);return`<button class="btn ${S.d[k]?'done':''}" data-a="${k}" ${on?'':'disabled title="Complete prerequisites first (bed, consent)"'}>${S.d[k]?'✓ ':''}${L[k]}</button>`}).join('');
+ $('#app').innerHTML=`<div class="space-y-4">
+ <section class="card"><div class="lbl">Admission</div><div class="font-bold">${S.dx} · ${S.type} · ${S.date}</div>
+ <div class="sans text-sm" style="color:var(--mut)">${S.p} · ${S.att} · ${S.payer} — illustrative training data</div></section>
+ ${S.type==='Observation'?`<div class="note">⚠ ${OBS}</div>`:''}
+ ${['Acute MI','CHF'].includes(S.dx)?`<div class="note">📋 ${CRIT}</div>`:''}
+ <section class="card"><div class="flex justify-between items-end"><div><div class="lbl">Readiness Score</div><div class="text-4xl font-bold">${sc.v}%</div></div>
+ <div class="sans text-xs text-right" style="color:var(--mut)">PA 25 · Docs 20 · Orders 20 · Insurance 15 · Consent 10 · Bed 10</div></div>
+ <div class="bar mt-2"><i style="width:${sc.v}%"></i></div>
+ ${sc.capped?'<p class="sans text-sm r mt-2">Denied PA + ICU admission: score capped at 69% — administrative tasks alone cannot clear this. Appeal the denial.</p>':''}
+ <div class="mt-3">${rows}</div></section>
+ <section class="card space-y-2"><h2 class="font-bold">Prior Authorization Actions</h2><div class="flex flex-wrap gap-2">${paBtns()}</div></section>
+ <section class="card space-y-2"><h2 class="font-bold">Workflow Actions</h2><div class="flex flex-wrap gap-2">${wf}</div></section>
+ <section class="card"><h2 class="font-bold mb-2">Timeline</h2><ul class="grid sm:grid-cols-2 gap-1">${timeline()}</ul></section>
+ <section><h2 class="font-bold mb-2">Care Coordination</h2><div class="grid sm:grid-cols-2 gap-3">${cards()}</div></section>
+ <section class="card"><h2 class="font-bold mb-2">Risk Tracking</h2>${risks().map(([n,p,w])=>{const[l,c]=lvl(p);return`<div class="mb-2 sans text-sm"><div class="flex justify-between"><span>${n} <span style="color:var(--mut)">${w}</span></span><span class="${c} font-semibold">${l} · ${p}</span></div><div class="bar"><i style="width:${p}%"></i></div></div>`}).join('')}</section>
+ ${ready?`<div class="note">📊 Governance Snapshot — ${GOV}</div>`:''}
+ <section class="card"><h2 class="font-bold mb-1">Activity Log</h2><ul class="sans text-sm list-disc pl-5">${S.log.slice(-6).map(x=>`<li>${x}</li>`).join('')}</ul></section>
+ <button id="fin" class="btn w-full">Make Final Admission Decision</button>
+ <div id="res"></div>
+ <button id="reset" class="btn ghost">↺ New Scenario</button></div>`;
+ document.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const k=b.dataset.a;S.d[k]=1;act(k);S.log.push(L[k]+' completed.');S.dec=null;render()});
+ document.querySelectorAll('[data-pa]').forEach(b=>b.onclick=()=>{paAct(b.dataset.pa);S.dec=null;render()});
+ $('#fin').onclick=decide;$('#reset').onclick=setup;
+ if(S.dec)showRes();
+}
+const miss={pa:['PA not approved','Complete PA actions / appeal'],docs:['Clinical documentation incomplete','Upload documentation and confirm medical necessity'],ord:['Physician orders not finalized','Contact attending to sign admission orders'],ins:['Insurance not verified','Verify insurance eligibility'],con:['Consent not obtained','Complete patient consent'],bed:['No bed assigned','Assign bed']};
+function decide(){S.dec=score().v>=90?'admit':'no';render();$('#res').scrollIntoView({behavior:'smooth'})}
+function showRes(){
+ const sc=score();let h;
+ if(S.dec==='admit'){
+  h=`<div class="card" style="border-color:var(--ok)"><h2 class="text-xl font-bold g">✅ Admit</h2><p class="sans text-sm mt-2">Readiness ${sc.v}%. ${S.p} · ${S.att} · ${S.dx} · ${S.type} · ${S.date}.</p>
+  <ul class="sans text-sm list-disc pl-5 mt-2">${Object.keys(W).map(k=>`<li>${NAMES[k]}: ${stat(k)[0]}</li>`).join('')}</ul>
+  <p class="sans text-sm mt-2">Bed assigned, consent complete, documentation meets review standards. Admission complete.</p></div>`;
+ }else{
+  const m=Object.keys(W).filter(k=>S.f[k]<1);
+  const rk=risks().filter(r=>r[1]>=30);
+  h=`<div class="card" style="border-color:var(--warn)"><h2 class="text-xl font-bold a">⚠ Not Ready</h2><p class="sans text-sm mt-1">Readiness ${sc.v}% — 90% required.</p>
+  <h3 class="font-bold mt-3">Missing items</h3><ul class="sans text-sm list-disc pl-5">${m.map(k=>`<li>${miss[k][0]}</li>`).join('')||'<li>None — score shortfall only</li>'}</ul>
+  <h3 class="font-bold mt-3">Required actions</h3><ul class="sans text-sm list-disc pl-5">${m.map(k=>`<li>${miss[k][1]}</li>`).join('')}${!S.d.nurse?'<li>Notify Nursing</li>':''}${!S.d.arrive?'<li>Prepare Patient Arrival</li>':''}</ul>
+  <h3 class="font-bold mt-3">Remaining risks</h3><ul class="sans text-sm list-disc pl-5">${rk.map(r=>`<li>${r[0]}: ${lvl(r[1])[0]} (${r[1]})</li>`).join('')||'<li>No elevated risks</li>'}</ul></div>`;
+ }
+ $('#res').innerHTML=h;
+}
+setup();
+</script></body></html>
