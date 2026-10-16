@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Media Integrity Analyzer</title>
+<style>
+:root{--bg:#141210;--bg2:#1b1815;--card:#211d19;--line:#35302a;--text:#f3ede6;--muted:#a39a8f;--acc:#d97757;--acc2:#f0a07f;--good:#7bc99a;--bad:#e5776b;--r:18px}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:radial-gradient(900px 500px at 85% -10%,rgba(217,119,87,.16),transparent 60%),radial-gradient(700px 400px at -10% 110%,rgba(217,119,87,.08),transparent 60%),var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.6;min-height:100vh}
+.serif{font-family:Georgia,"Times New Roman",serif}
+.wrap{max-width:980px;margin:0 auto;padding:22px 18px 70px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.3px}
+.logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--acc),#b4532f);display:grid;place-items:center;font-family:Georgia,serif;font-size:18px;color:#fff}
+.round{font-size:12px;color:var(--muted);border:1px solid var(--line);padding:4px 12px;border-radius:99px}
+.prog{display:flex;gap:6px;margin-bottom:16px}
+.prog div{flex:1;height:5px;border-radius:9px;background:var(--line);overflow:hidden;position:relative}
+.prog div::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,var(--acc),var(--acc2));transform:translateX(-101%);transition:transform .6s ease}
+.prog div.on::after{transform:none}
+.prog-l{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin:-10px 0 16px;text-transform:uppercase;letter-spacing:1px}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px}
+.met{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;transition:.25s}
+.met:hover{transform:translateY(-3px);border-color:var(--acc)}
+.met small{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.8px}
+.met b{font-size:22px;font-family:Georgia,serif}
+.bar{height:5px;background:var(--line);border-radius:9px;margin-top:6px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:9px;transition:width 1s cubic-bezier(.2,.8,.2,1)}
+#stage>*{animation:rise .55s ease both}
+#stage>*:nth-child(2){animation-delay:.08s}#stage>*:nth-child(3){animation-delay:.16s}#stage>*:nth-child(4){animation-delay:.24s}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.eyebrow{color:var(--acc);font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:700}
+h1{font-family:Georgia,serif;font-size:clamp(32px,6vw,56px);line-height:1.1;margin:8px 0 14px}
+h2{font-family:Georgia,serif;font-size:clamp(24px,4vw,34px);line-height:1.2;margin:6px 0 12px}
+h3{font-size:13px;color:var(--acc2);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:6px}
+p.lead{color:var(--muted);font-size:17px;max-width:720px;margin-bottom:22px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:18px 0 24px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px;transition:.25s}
+.card:hover{border-color:var(--acc);transform:translateY(-3px);box-shadow:0 14px 34px rgba(0,0,0,.35)}
+.card p{color:#d8d0c6;font-size:15px}
+.paper{background:#f1e9dd;color:#1d1a17;border-radius:var(--r);padding:24px;margin:14px 0;box-shadow:0 18px 40px rgba(0,0,0,.4)}
+.paper .src{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#8a4a30;font-weight:700;margin-bottom:6px}
+.paper h2.hl{color:#1d1a17;font-size:clamp(22px,4vw,32px);margin:4px 0 12px}
+.paper p{font-size:15.5px;color:#3b342d}
+.post{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:22px;margin:14px 0;font-size:18px}
+.post .who{font-size:12px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
+.q{margin:22px 0 8px;font-weight:600;font-size:17px}
+.hint{color:var(--muted);font-size:13.5px;margin-bottom:10px}
+.chips{display:flex;gap:10px;flex-wrap:wrap}
+.chip{background:var(--bg2);color:var(--text);border:1px solid var(--line);padding:10px 18px;border-radius:99px;cursor:pointer;font-size:15px;transition:.2s;font-family:inherit}
+.chip:hover{border-color:var(--acc);transform:translateY(-2px)}
+.chip.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.tok{display:inline;background:none;border:0;border-bottom:2px dashed transparent;font:inherit;color:inherit;cursor:pointer;padding:1px 2px;border-radius:4px;transition:.15s}
+.tok:hover{background:rgba(217,119,87,.25)}
+.tok.on{background:rgba(217,119,87,.35);border-bottom-color:var(--acc)}
+.paper .tok:hover{background:rgba(217,119,87,.3)}
+.tok.static{cursor:default}
+.hit{background:rgba(123,201,154,.28);border-bottom:2px solid var(--good)}
+.miss{background:rgba(217,119,87,.3);border-bottom:2px dashed var(--acc)}
+.wrong{background:rgba(229,119,107,.22);text-decoration:line-through;text-decoration-color:var(--bad)}
+mark{background:rgba(217,119,87,.35);color:inherit;padding:0 3px;border-radius:4px}
+.btn{background:linear-gradient(135deg,var(--acc),#b4532f);color:#fff;border:0;padding:14px 28px;border-radius:99px;font-size:16px;font-weight:700;cursor:pointer;margin-top:22px;transition:.25s;font-family:inherit;box-shadow:0 10px 26px rgba(217,119,87,.28)}
+.btn:hover:not(:disabled){transform:translateY(-3px);box-shadow:0 16px 34px rgba(217,119,87,.4)}
+.btn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
+.btn.ghost{background:transparent;border:1px solid var(--acc);color:var(--acc2);box-shadow:none}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin:8px 0}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:14px;height:10px;border-radius:3px;display:inline-block}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0}
+.big{font-family:Georgia,serif;font-size:56px;color:var(--acc2);line-height:1}
+.take{border-left:4px solid var(--acc);background:rgba(217,119,87,.1);padding:16px 20px;border-radius:0 14px 14px 0;margin-top:16px}
+.ring{position:relative;width:200px;height:200px;margin:0 auto}
+.ring svg{transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:14;stroke-linecap:round}
+.ring .tr{stroke:var(--line)}.ring .fg{stroke:var(--acc);stroke-dasharray:502;stroke-dashoffset:502;transition:stroke-dashoffset 1.6s cubic-bezier(.2,.8,.2,1)}
+.ring div{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.ring b{font-family:Georgia,serif;font-size:50px;line-height:1}
+.ring small{color:var(--muted);font-size:12px;letter-spacing:1px;text-transform:uppercase}
+ul.clean{list-style:none}
+ul.clean li{padding:8px 0 8px 26px;position:relative;color:#d8d0c6;font-size:15px}
+ul.clean li::before{content:"\2726";position:absolute;left:0;color:var(--acc)}
+.center{text-align:center}
+@media(max-width:760px){.metrics{grid-template-columns:repeat(2,1fr)}.grid3,.two{grid-template-columns:1fr}.prog-l span:nth-child(even){display:none}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand"><div class="logo">M</div><span>Media Integrity Analyzer</span></div>
+    <div class="round" id="roundTag">Round 1</div>
+  </header>
+  <div class="prog" id="prog"></div>
+  <div class="prog-l"><span>Start</span><span>Lesson 1</span><span>Headlines</span><span>Lesson 2</span><span>Emotions</span><span>Dashboard</span></div>
+  <section class="metrics" id="metrics"></section>
+  <main id="stage"></main>
+</div>
+
+<script>
+"use strict";
+var D1 = [
+  {
+    head: "{{Shocking}} Study {{Proves}} Coffee {{Cures}} Memory Loss {{For Everyone}}",
+    art: "A small University of Brindle study of 42 adults aged 60 and over found that people who drank two cups of coffee daily {{scored 3% higher on one recall test}} than a comparison group. Researchers called the result {{preliminary}}, said it {{cannot show cause and effect}}, and noted it {{was not tested on people with memory disorders}}.",
+    acc: 22, src: 55,
+    why: "The headline turns a tiny, early finding into a miracle cure. 'Proves', 'Cures' and 'For Everyone' are absolute claims the article never makes. The study had 42 people, one test, and no link to memory disease.",
+    fair: "Small Study Finds Slightly Higher Recall Scores Among Older Coffee Drinkers",
+    take: "Absolute words like proves, cures and everyone are a signal to check how small or early the evidence is.",
+    flag: "Absolute claims (\u201Cproves\u201D, \u201Ccures\u201D) built on tiny evidence"
+  },
+  {
+    head: "City Council {{Secretly}} {{Bans}} Street Food Carts {{Overnight}}",
+    art: "At a public meeting whose agenda was posted ten days earlier, the council voted to {{update permit zones}} near two school areas. Carts {{remain allowed everywhere else}}, and the change {{takes effect in 60 days}}.",
+    acc: 28, src: 40,
+    why: "'Secretly' and 'Overnight' contradict the article: the vote was public, announced in advance, and phased in over 60 days. 'Bans' hides that only two zones are affected.",
+    fair: "City Council Votes to Restrict Food Cart Permits Near Two Schools",
+    take: "Loaded words about secrecy or speed can invent drama the facts do not support.",
+    flag: "Invented secrecy and urgency (\u201Csecretly\u201D, \u201Covernight\u201D)"
+  },
+  {
+    head: "{{Experts}} {{Warn}} New Phone App {{Is Spying On Millions}}",
+    art: "A security blog found that one note-taking app, FlashNote, asks for contacts access. {{No evidence}} shows any data was misused. The review was done by {{a single researcher}}, and the app has {{about 20,000 downloads}}.",
+    acc: 30, src: 35,
+    why: "'Experts' was one researcher, 'spying' was never shown, and 'millions' is really about 20,000 downloads. Asking for a permission is not the same as abusing it.",
+    fair: "Researcher Notes a Note-Taking App Requests Contacts Access; No Misuse Found",
+    take: "Check who the 'experts' really are and whether the numbers in the headline appear in the article.",
+    flag: "Vague authority and inflated numbers (\u201Cexperts warn\u201D, \u201Cmillions\u201D)"
+  }
+];
+var D2 = [
+  {
+    kind: "Social media post",
+    text: "\uD83D\uDEA8 {{THEY don't want you to know}} this!! Your neighbors are {{quietly}} being charged 3x more for water, and the city is {{HIDING}} it. {{If you still trust them, you're part of the problem.}} {{SHARE before it gets deleted!}}",
+    aud: "Local residents who already distrust institutions and worry about household bills",
+    emo: "Anger and urgency, so you share before thinking",
+    tech: "Outrage + us-vs-them framing + fake deadline + guilt",
+    neutral: "Some residents report higher water bills this quarter. The city says rates rose 8% in July, and the rate schedule is posted on its website. Compare your bill against it.",
+    take: "When a post tells you to share fast or shames you for doubting, it is steering you, not informing you.",
+    man: 88, tgt: 80,
+    flag: "Fake urgency and guilt (\u201Cshare before it gets deleted\u201D)"
+  },
+  {
+    kind: "Reel caption",
+    text: "Only {{real students}} {{grind at 4 AM}}. {{If you're still sleeping, you're already losing.}} {{Everyone who's winning}} uses this one app, so {{don't get left behind}}. Link in bio.",
+    aud: "Teen and college students anxious about grades and success",
+    emo: "Fear of missing out and feeling inadequate",
+    tech: "FOMO + social comparison + bandwagon pressure",
+    neutral: "Some students study well early in the morning, others at night. Try different schedules and keep what works for you. One study-planner app is linked in my bio.",
+    take: "Content that makes you feel behind is often selling the cure. Ask what they gain when you feel that way.",
+    man: 82, tgt: 85,
+    flag: "Fear of missing out used to sell something"
+  },
+  {
+    kind: "Article excerpt",
+    text: "Parents, {{imagine the unthinkable}}: {{your child is one click away}} from {{danger}}. A new game, {{experts say}}, {{could be}} {{destroying a generation}}. {{Protect them now}} and buy our monitoring kit.",
+    aud: "Parents of children and teens who feel guilty about screen time",
+    emo: "Fear and parental guilt that pushes a quick purchase",
+    tech: "Fear appeal + vague authority + hidden sales pitch",
+    neutral: "A new online game has drawn attention from child-safety groups. Parents can review its privacy settings and talk with their children about online play. Our company also sells a monitoring tool.",
+    take: "Fear plus an instant product to buy is a classic pattern. Slow down before acting on a scare.",
+    man: 90, tgt: 78,
+    flag: "Fear appeal paired with a sales pitch"
+  }
+];
+var FEELS = ["Angry", "Anxious", "Left out", "Guilty", "Curious", "Calm"];
+var THEME_NOTE = "Claude Orange";
+var S = { step: 0, round: 0, c1: null, c2: null, m: { acc: null, src: null, man: null, tgt: null } };
+
+function fresh() {
+  S.c1 = { click: null, picked: new Set(), done: false };
+  S.c2 = { feel: null, picked: new Set(), done: false };
+  S.m = { acc: null, src: null, man: null, tgt: null };
+}
+fresh();
+
+function strip(t) { return t.replace(/\{\{|\}\}/g, ""); }
+function toks(t) {
+  var out = [], re = /\{\{(.+?)\}\}/g, last = 0, m;
+  function add(seg, f) {
+    seg.split(/\s+/).filter(Boolean).forEach(function (w) { out.push({ w: w, f: f }); });
+  }
+  while ((m = re.exec(t)) !== null) {
+    if (m.index > last) add(t.slice(last, m.index), false);
+    add(m[1], true);
+    last = re.lastIndex;
+  }
+  if (last < t.length) add(t.slice(last), false);
+  return out;
+}
+function pickHTML(t) {
+  return toks(t).map(function (k, i) {
+    return '<button type="button" class="tok" data-act="tok" data-i="' + i + '">' + k.w + '</button> ';
+  }).join("");
+}
+function revHTML(t, picked) {
+  return toks(t).map(function (k, i) {
+    var c = "tok static";
+    if (k.f && picked.has(i)) c += " hit";
+    else if (k.f) c += " miss";
+    else if (picked.has(i)) c += " wrong";
+    return '<span class="' + c + '">' + k.w + '</span> ';
+  }).join("");
+}
+function score(t, picked) {
+  var ks = toks(t), flagged = 0, hits = 0, wrong = 0;
+  ks.forEach(function (k, i) {
+    if (k.f) { flagged++; if (picked.has(i)) hits++; }
+    else if (picked.has(i)) wrong++;
+  });
+  return { flagged: flagged, hits: hits, wrong: wrong, d: flagged ? Math.max(0, (hits - 0.5 * wrong) / flagged) : 0 };
+}
+function cur1() { return D1[S.round % D1.length]; }
+function cur2() { return D2[S.round % D2.length]; }
+
+function concept(title, what, why, day, next, label) {
+  return '<div class="eyebrow">' + label + '</div><h2>' + title + '</h2>' +
+    '<div class="grid3"><div class="card"><h3>The concept</h3><p>' + what + '</p></div>' +
+    '<div class="card"><h3>Why it matters</h3><p>' + why + '</p></div>' +
+    '<div class="card"><h3>In everyday life</h3><p>' + day + '</p></div></div>' +
+    '<p class="hint">You will observe first, think, then reveal the answer. There are no wrong answers, only discoveries.</p>' +
+    '<button class="btn" data-act="next">' + next + ' &rarr;</button>';
+}
+
+var screens = [
+  function () {
+    return '<div class="eyebrow">Interactive media literacy lesson</div>' +
+      '<h1>See through the <span style="color:var(--acc)">noise</span>.</h1>' +
+      '<p class="lead">Two short guided challenges teach you how headlines exaggerate and how posts steer your emotions. Observe, think, reveal, then learn the pattern. Nothing here tests what you already know.</p>' +
+      '<div class="grid3"><div class="card"><h3>1. Headline Detective</h3><p>Spot where a headline stretches the truth.</p></div>' +
+      '<div class="card"><h3>2. Emotion Detector</h3><p>Notice how words are built to make you feel.</p></div>' +
+      '<div class="card"><h3>3. Your Dashboard</h3><p>Get your score, red flag and three habits.</p></div></div>' +
+      '<p class="hint">All scenarios are fictional and created for this lesson.</p>' +
+      '<button class="btn" data-act="next">Begin the lesson &rarr;</button>';
+  },
+  function () {
+    return concept("Headlines are written to be clicked",
+      "A headline is a promise about a story. Sometimes it stretches facts with strong or absolute words to win attention.",
+      "Most people only read headlines before reacting or sharing, so an exaggerated one spreads further than the careful article beneath it.",
+      "Scrolling a feed, reading a forwarded link in a group chat, or deciding which story to believe in a few seconds.",
+      "Start Challenge 1", "Lesson 1 of 2");
+  },
+  function () {
+    var d = cur1(), c = S.c1, h = "";
+    h += '<div class="eyebrow">Challenge 1 &middot; Headline Detective</div><h2>Read it like a detective</h2>';
+    h += '<div class="paper"><div class="src">The Daily Meridian &middot; fictional</div>';
+    if (!c.done) {
+      h += '<h2 class="hl">' + strip(d.head) + '</h2><p>' + strip(d.art) + '</p></div>';
+      h += '<div class="q">1. Would you click this?</div><div class="chips">' +
+        ["Yes", "Maybe", "No"].map(function (v) {
+          return '<button type="button" class="chip' + (c.click === v ? " on" : "") + '" data-act="click1" data-v="' + v + '">' + v + '</button>';
+        }).join("") + '</div>';
+      h += '<div class="q">2. Which words in the headline feel exaggerated or misleading?</div>' +
+        '<p class="hint">Tap words in the headline below. Compare them with the article above.</p>' +
+        '<div class="paper" style="margin-top:6px"><h2 class="hl" style="margin:0">' + pickHTML(d.head) + '</h2></div>';
+      h += '<button class="btn" id="rev1" data-act="rev1"' + (c.click ? "" : " disabled") + '>Reveal the analysis</button>';
+    } else {
+      var sc = score(d.head, c.picked);
+      h += '<h2 class="hl">' + revHTML(d.head, c.picked) + '</h2><p>' + d.art.replace(/\{\{(.+?)\}\}/g, "<mark>$1</mark>") + '</p></div>';
+      h += '<div class="legend"><span><i style="background:rgba(123,201,154,.5)"></i>You caught it</span><span><i style="background:rgba(217,119,87,.5)"></i>You missed it</span><span><i style="background:rgba(229,119,107,.4)"></i>Not misleading</span><span><i style="background:rgba(217,119,87,.5)"></i>Evidence in article</span></div>';
+      h += '<div class="two"><div class="card"><h3>Headline Accuracy Score</h3><div class="big">' + d.acc + '<span style="font-size:22px">/100</span></div><p class="hint" style="margin-top:8px">You caught ' + sc.hits + ' of ' + sc.flagged + ' exaggerated words.</p></div>' +
+        '<div class="card"><h3>Fair headline</h3><p class="serif" style="font-size:20px">' + d.fair + '</p></div></div>';
+      h += '<div class="card"><h3>Explanation</h3><p>' + d.why + '</p></div>';
+      h += '<div class="take"><b>Key takeaway:</b> ' + d.take + '</div>';
+      h += '<button class="btn" data-act="next">Continue to Lesson 2 &rarr;</button>';
+    }
+    return h;
+  },
+  function () {
+    return concept("Posts are designed to make you feel",
+      "Some content is crafted to trigger a strong emotion, like fear, anger or guilt, so you react before you think.",
+      "Emotion spreads content faster than facts, and the same message can be aimed at the people most likely to react.",
+      "Reels, forwarded messages and ads that make you anxious, outraged or left out, often with a button to act right now.",
+      "Start Challenge 2", "Lesson 2 of 2");
+  },
+  function () {
+    var d = cur2(), c = S.c2, h = "";
+    h += '<div class="eyebrow">Challenge 2 &middot; Emotion Detector</div><h2>Notice what it does to you</h2>';
+    h += '<div class="post"><div class="who">' + d.kind + ' &middot; fictional</div>';
+    if (!c.done) {
+      h += strip(d.text) + '</div>';
+      h += '<div class="q">1. How did it make you feel?</div><div class="chips">' +
+        FEELS.map(function (v) {
+          return '<button type="button" class="chip' + (c.feel === v ? " on" : "") + '" data-act="feel" data-v="' + v + '">' + v + '</button>';
+        }).join("") + '</div>';
+      h += '<div class="q">2. Which words pushed that feeling?</div><p class="hint">Tap the words or phrases that influenced you.</p>' +
+        '<div class="post" style="font-size:18px">' + pickHTML(d.text) + '</div>';
+      h += '<button class="btn" id="rev2" data-act="rev2"' + (c.feel ? "" : " disabled") + '>Reveal the analysis</button>';
+    } else {
+      var sc = score(d.text, c.picked);
+      h += revHTML(d.text, c.picked) + '</div>';
+      h += '<div class="legend"><span><i style="background:rgba(123,201,154,.5)"></i>You caught it</span><span><i style="background:rgba(217,119,87,.5)"></i>Emotional phrase you missed</span><span><i style="background:rgba(229,119,107,.4)"></i>Not manipulative</span></div>';
+      h += '<p class="hint">You felt <b style="color:var(--acc2)">' + c.feel + '</b> and caught ' + sc.hits + ' of ' + sc.flagged + ' emotional phrases.</p>';
+      h += '<div class="two"><div class="card"><h3>Target audience</h3><p>' + d.aud + '</p></div><div class="card"><h3>Intended emotional response</h3><p>' + d.emo + '</p></div></div>';
+      h += '<div class="two"><div class="card"><h3>Manipulation technique</h3><p>' + d.tech + '</p></div><div class="card"><h3>Neutral rewrite</h3><p>' + d.neutral + '</p></div></div>';
+      h += '<div class="take"><b>Key takeaway:</b> ' + d.take + '</div>';
+      h += '<button class="btn" data-act="next">See my dashboard &rarr;</button>';
+    }
+    return h;
+  },
+  function () {
+    var d1 = cur1(), d2 = cur2(), s1 = score(d1.head, S.c1.picked), s2 = score(d2.text, S.c2.picked);
+    var cs = S.c1.click === "No" ? 1 : S.c1.click === "Maybe" ? 0.5 : 0;
+    var overall = Math.round(100 * (0.35 * s1.d + 0.35 * s2.d + 0.15 * cs + 0.15));
+    var worst = d2.man >= (100 - d1.acc) ? d2.flag : d1.flag;
+    var h = '<div class="eyebrow">Media Integrity Dashboard</div><h2>Your media integrity profile</h2>';
+    h += '<div class="two"><div class="card center"><div class="ring"><svg width="200" height="200" viewBox="0 0 200 200"><circle class="tr" cx="100" cy="100" r="80"></circle><circle class="fg" id="ringfg" cx="100" cy="100" r="80"></circle></svg><div><b id="ringnum" data-target="' + overall + '">0</b><small>Overall score</small></div></div>' +
+      '<p class="hint" style="margin-top:12px">Based on how well you spotted exaggeration and emotional pressure, plus pausing before clicking.</p></div>';
+    h += '<div class="card"><h3>Biggest red flag</h3><p class="serif" style="font-size:21px;margin-bottom:12px">' + worst + '</p><h3>What you learned</h3><ul class="clean">' +
+      '<li>Spotted ' + s1.hits + ' of ' + s1.flagged + ' exaggerated headline words.</li>' +
+      '<li>Spotted ' + s2.hits + ' of ' + s2.flagged + ' emotionally loaded phrases.</li>' +
+      '<li>Headline accuracy was ' + d1.acc + '/100 and manipulation ' + d2.man + '/100 in your scenarios.</li></ul></div></div>';
+    h += '<div class="card"><h3>Three practical habits</h3><ul class="clean">' +
+      '<li><b>Read past the headline</b> before you react or share. Check that the article supports the claim.</li>' +
+      '<li><b>Pause on strong feelings.</b> Ask who benefits if you feel this way and what they want you to do.</li>' +
+      '<li><b>Check the source</b> and look for a second independent report with named people and real numbers.</li></ul></div>';
+    h += '<div style="display:flex;gap:12px;flex-wrap:wrap"><button class="btn" data-act="replay">Replay with new scenarios &#8635;</button></div>';
+    return h;
+  }
+];
+
+function updateMetrics() {
+  var defs = [["acc", "Headline Accuracy"], ["src", "Source Reliability"], ["man", "Emotional Manipulation"], ["tgt", "Audience Targeting"]];
+  var m = document.getElementById("metrics");
+  if (!m.children.length) {
+    m.innerHTML = defs.map(function (x) {
+      return '<div class="met"><small>' + x[1] + '</small><b id="mv-' + x[0] + '">&mdash;</b><div class="bar"><i id="mb-' + x[0] + '"></i></div></div>';
+    }).join("");
+  }
+  defs.forEach(function (x) {
+    var v = S.m[x[0]];
+    document.getElementById("mv-" + x[0]).textContent = v === null ? "\u2014" : v;
+    document.getElementById("mb-" + x[0]).style.width = (v === null ? 0 : v) + "%";
+  });
+}
+
+function render() {
+  var stage = document.getElementById("stage");
+  stage.innerHTML = screens[S.step]();
+  var p = document.getElementById("prog");
+  if (!p.children.length) {
+    var s = "";
+    for (var i = 0; i < 6; i++) s += "<div></div>";
+    p.innerHTML = s;
+  }
+  Array.prototype.forEach.call(p.children, function (el, i) { el.className = i <= S.step ? "on" : ""; });
+  document.getElementById("roundTag").textContent = "Round " + (S.round + 1);
+  updateMetrics();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  if (S.step === 5) animateRing();
+}
+
+function animateRing() {
+  var num = document.getElementById("ringnum");
+  var fg = document.getElementById("ringfg");
+  var target = parseInt(num.getAttribute("data-target"), 10);
+  setTimeout(function () { fg.style.strokeDashoffset = String(502 - (502 * target / 100)); }, 150);
+  var start = null;
+  function tick(ts) {
+    if (start === null) start = ts;
+    var t = Math.min(1, (ts - start) / 1400);
+    num.textContent = String(Math.round(target * t));
+    if (t < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+document.addEventListener("click", function (e) {
+  var el = e.target.closest("[data-act]");
+  if (!el || el.disabled) return;
+  var act = el.getAttribute("data-act");
+  if (act === "next") { S.step = Math.min(5, S.step + 1); render(); }
+  else if (act === "tok") {
+    var i = parseInt(el.getAttribute("data-i"), 10);
+    var set = S.step === 2 ? S.c1.picked : S.c2.picked;
+    if (set.has(i)) { set.delete(i); el.classList.remove("on"); }
+    else { set.add(i); el.classList.add("on"); }
+  }
+  else if (act === "click1" || act === "feel") {
+    var v = el.getAttribute("data-v");
+    if (act === "click1") S.c1.click = v; else S.c2.feel = v;
+    Array.prototype.forEach.call(el.parentNode.children, function (b) { b.classList.remove("on"); });
+    el.classList.add("on");
+    var btn = document.getElementById(act === "click1" ? "rev1" : "rev2");
+    if (btn) btn.disabled = false;
+  }
+  else if (act === "rev1") {
+    var d = cur1();
+    S.c1.done = true; S.m.acc = d.acc; S.m.src = d.src;
+    render();
+  }
+  else if (act === "rev2") {
+    var d2 = cur2();
+    S.c2.done = true; S.m.man = d2.man; S.m.tgt = d2.tgt;
+    render();
+  }
+  else if (act === "replay") {
+    S.round++; fresh(); S.step = 1; render();
+  }
+});
+
+render();
+</script>
+</body>
+</html>
