@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🧩 Prompt Puzzle — Master AI Prompting Through Play</title>
+<style>
+:root{--bg:#0b0b1a;--card:rgba(255,255,255,.06);--bd:rgba(255,255,255,.13);--tx:#eef0ff;--mu:#9aa0c8;--a:#8b5cf6;--b:#22d3ee;--ok:#34d399;--bad:#f87171;--warn:#fbbf24}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--tx);background:radial-gradient(900px 500px at 8% -10%,#3b1d8f66,transparent),radial-gradient(800px 500px at 100% 5%,#0e749055,transparent),var(--bg)}
+.wrap{max-width:980px;margin:0 auto;padding:18px}
+h1{font-size:1.5rem;margin:0}h1 span{background:linear-gradient(90deg,var(--a),var(--b));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--mu);margin:2px 0 12px;font-size:.9rem}
+.hud{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:8px;margin-bottom:10px}
+.stat{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:8px 10px;transition:transform .2s}
+.stat:hover{transform:translateY(-2px)}
+.stat small{display:block;color:var(--mu);font-size:.68rem;text-transform:uppercase;letter-spacing:.06em}
+.stat b{font-size:1.2rem}
+.prog{height:8px;background:var(--card);border-radius:9px;overflow:hidden;margin-bottom:6px}
+.prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--a),var(--b));transition:width .5s}
+.plabel{color:var(--mu);font-size:.8rem;margin-bottom:12px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:16px;margin-bottom:12px;backdrop-filter:blur(8px);animation:in .4s both}
+@keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.tag{display:inline-block;font-size:.72rem;padding:3px 10px;border-radius:99px;background:linear-gradient(90deg,var(--a),var(--b));color:#fff;margin-bottom:8px;font-weight:600}
+h2,h3,h4{margin:.2rem 0 .5rem}
+.target{border-left:3px solid var(--b);padding-left:10px;color:#cfe;font-size:.95rem}
+.mu{color:var(--mu);font-size:.85rem}
+.slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:12px 0}
+.slot{min-height:78px;border:2px dashed var(--bd);border-radius:12px;padding:8px 10px;font-size:.88rem;transition:.2s;cursor:pointer}
+.slot b{display:block;color:var(--b);font-size:.75rem;text-transform:uppercase;margin-bottom:4px}
+.slot .ph{color:var(--mu)}
+.slot.over{border-color:var(--a);background:#8b5cf622;transform:scale(1.02)}
+.slot.ok{border:2px solid var(--ok);background:#34d39918}
+.slot.shake,.blk.shake{animation:sh .35s}
+@keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.pool{display:flex;flex-wrap:wrap;gap:8px}
+.blk,.chip{padding:9px 12px;border-radius:10px;background:#ffffff14;border:1px solid var(--bd);cursor:grab;font-size:.88rem;transition:.18s;user-select:none}
+.blk:hover,.chip:hover,.opt:hover{transform:translateY(-3px);box-shadow:0 8px 22px #0006;border-color:var(--a)}
+.blk.sel{outline:2px solid var(--b)}
+.hint{animation:glow 1s infinite}
+@keyframes glow{50%{box-shadow:0 0 18px var(--warn);border-color:var(--warn)}}
+.chip{cursor:pointer;display:block;margin-bottom:8px}
+.chip.cut{text-decoration:line-through;opacity:.45;border-color:var(--bad)}
+.chip.good{border-color:var(--ok);background:#34d39922}
+.chip.wrong{border-color:var(--bad);background:#f8717122}
+.opt{padding:12px;border:1px solid var(--bd);border-radius:12px;margin-bottom:10px;cursor:pointer;background:#ffffff0d;transition:.18s;font-size:.92rem}
+.opt.dim{opacity:.25;pointer-events:none}
+.opt.good{border-color:var(--ok);background:#34d39922}
+.opt.wrong{border-color:var(--bad);background:#f8717122}
+.btn{background:linear-gradient(90deg,var(--a),var(--b));color:#fff;border:0;border-radius:11px;padding:10px 18px;font-weight:700;cursor:pointer;font-size:.95rem;transition:.2s}
+.btn:hover{transform:translateY(-2px) scale(1.03);box-shadow:0 8px 24px #8b5cf655}
+.btn.ghost{background:transparent;border:1px solid var(--bd);color:var(--tx)}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;align-items:center}
+.dif{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.dif button{background:var(--card);border:1px solid var(--bd);color:var(--tx);padding:9px 16px;border-radius:99px;cursor:pointer;transition:.2s}
+.dif button:hover{transform:translateY(-2px)}
+.dif button.on{background:linear-gradient(90deg,var(--a),var(--b));border-color:transparent}
+.cmp{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
+.cmp>div{border-radius:12px;padding:10px;border:1px solid var(--bd)}
+.cmp .bad{background:#f8717114}.cmp .good{background:#34d39914}
+.code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.8rem;background:#0008;padding:8px;border-radius:8px;white-space:pre-wrap}
+.out{font-size:.85rem;color:#dfe3ff}
+.pr{background:#fbbf2418;border:1px solid #fbbf2455;padding:8px 12px;border-radius:10px;font-size:.9rem}
+small{color:var(--mu);font-weight:400;font-size:.75rem}
+.big{font-size:3.2rem;font-weight:800;line-height:1}
+.rung{display:grid;grid-template-columns:70px 1fr 44px;gap:8px;align-items:center;font-size:.85rem;margin:6px 0}
+.rung div{height:10px;background:#ffffff14;border-radius:9px;overflow:hidden}
+.rung i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--a),var(--b));transition:width 1s}
+#toasts{position:fixed;top:14px;right:14px;z-index:9;display:flex;flex-direction:column;gap:8px}
+.toast{padding:10px 14px;border-radius:12px;background:#1b1b38;border:1px solid var(--bd);box-shadow:0 8px 24px #0008;animation:tin .3s both;font-size:.88rem}
+.toast.ok{border-color:var(--ok)}.toast.bad{border-color:var(--bad)}.toast.warn{border-color:var(--warn)}
+@keyframes tin{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
+.pulse{animation:pl .5s}@keyframes pl{50%{transform:scale(1.15);color:var(--ok)}}
+</style>
+</head>
+<body>
+<div id="toasts"></div>
+<div class="wrap">
+  <h1><span>🧩 Prompt Puzzle</span></h1>
+  <p class="sub">Master AI Prompting Through Play</p>
+  <div class="hud" id="hud"></div>
+  <div class="prog"><i id="bar"></i></div>
+  <div class="plabel" id="plabel">Ready when you are</div>
+  <div id="stage"></div>
+</div>
+<script>
+"use strict";
+/* ---------- Reusable scenario objects (Coding & Software Development) ---------- */
+const SC=[
+{t:"Debug a Python loop",desired:"A corrected function plus a short explanation of the bug.",
+ blocks:[{k:"Role",x:"You are a senior Python developer."},{k:"Task",x:"Find and fix the IndexError in the loop below."},{k:"Context",x:"The function sums every second item of a list and crashes on odd-length lists."},{k:"Format",x:"Return the corrected code, then a 2-sentence explanation."}],
+ dis:["Make the answer as long as possible.","Also rewrite my entire project in Rust.","Be funny and use lots of emojis."],
+ weak:"Fix my code.",wo:"Sure! Please share your code and tell me what is wrong.",
+ oo:"Fix: iterate with range(0, len(items), 2). The old loop read items[i+1], which does not exist on odd-length lists.",
+ pr:"Specific context turns a guess into a diagnosis."},
+{t:"Write a SQL report",desired:"One PostgreSQL query returning the top 5 customers by 2025 spend.",
+ blocks:[{k:"Role",x:"You are a PostgreSQL expert."},{k:"Task",x:"Write a query returning the top 5 customers by total spend in 2025."},{k:"Context",x:"Tables: customers(id,name), orders(id,customer_id,total,created_at)."},{k:"Format",x:"Return only the SQL in a code block with brief comments."}],
+ dis:["Explain the history of databases first.","Use any dialect you like.","Make it look impressive."],
+ weak:"Write a SQL query for top customers.",wo:"SELECT * FROM customers ORDER BY spend DESC; (column names are guessed)",
+ oo:"SELECT c.name, SUM(o.total) AS spend FROM customers c JOIN orders o ON o.customer_id=c.id WHERE o.created_at>='2025-01-01' AND o.created_at<'2026-01-01' GROUP BY c.name ORDER BY spend DESC LIMIT 5;",
+ pr:"Name your schema. The model cannot see your database."},
+{t:"Document an API endpoint",desired:"Clean developer docs for POST /users, ready to publish.",
+ blocks:[{k:"Role",x:"You are a technical writer for developer docs."},{k:"Task",x:"Document the POST /users endpoint."},{k:"Context",x:"It accepts name and email, returns 201 with the new user id, and 409 if the email exists."},{k:"Format",x:"Use sections: Description, Request, Response, Errors, with Markdown tables."}],
+ dis:["Write it like a marketing blog post.","Add a poem about APIs.","Guess any missing details."],
+ weak:"Document my API.",wo:"APIs let programs talk to each other. They are very useful...",
+ oo:"## POST /users\nCreates a user. Request: name, email. Response 201: {id}. Error 409: email already exists.",
+ pr:"Specify structure so output is ready to use."},
+{t:"Security code review",desired:"A numbered list of security issues with severity and fixes.",
+ blocks:[{k:"Role",x:"You are a strict code reviewer focused on security."},{k:"Task",x:"Review this Express login handler."},{k:"Context",x:"It builds SQL by string concatenation and stores passwords in plain text."},{k:"Format",x:"List issues as a numbered list, each with severity and a one-line fix."}],
+ dis:["Praise the code as much as you can.","Ignore anything about security.","Answer in one word."],
+ weak:"Review my code.",wo:"Looks good overall! Maybe add some comments.",
+ oo:"1. SQL injection (High): use parameterized queries.\n2. Plain-text passwords (High): hash with bcrypt.",
+ pr:"Give the model a point of view and it focuses its judgment."},
+{t:"Generate unit tests",desired:"A Jest test file with 6 clearly named tests for isPalindrome.",
+ blocks:[{k:"Role",x:"You are a QA engineer who uses Jest."},{k:"Task",x:"Write unit tests for the function isPalindrome(str)."},{k:"Context",x:"It should ignore case and punctuation; an empty string returns true."},{k:"Format",x:"Output one test file with 6 tests, each with a descriptive name."}],
+ dis:["Test everything in the universe.","Use whichever framework you feel like.","Skip test names to save time."],
+ weak:"Write tests for my function.",wo:"Here is a test: expect(isPalindrome('a')).toBe(true);",
+ oo:"test('ignores case: Racecar',...)\ntest('ignores punctuation: A man, a plan...',...)\ntest('empty string returns true',...) + 3 more",
+ pr:"Constrain quantity and naming to control the output."},
+{t:"Explain recursion",desired:"A beginner-friendly 3-step explanation with a short JavaScript example.",
+ blocks:[{k:"Role",x:"You are a patient coding mentor."},{k:"Task",x:"Explain how recursion works using a factorial function."},{k:"Context",x:"The learner is a first-year student who knows loops but not recursion."},{k:"Format",x:"Use a 3-step explanation with a short JavaScript example and no jargon."}],
+ dis:["Use advanced category theory.","Write 3,000 words.","Do not include any code."],
+ weak:"Explain recursion.",wo:"Recursion is a method where the solution depends on solutions to smaller instances of the same problem.",
+ oo:"Step 1: a function calls itself. Step 2: a base case stops it. Step 3: results combine on the way back. function fact(n){return n<=1?1:n*fact(n-1)}",
+ pr:"Match the audience to control depth and vocabulary."}
+];
+SC.forEach(s=>{s.opt=s.blocks.map(b=>b.x).join(" ");s.over=s.opt+" "+s.dis.join(" ")+" Be exhaustive and cover every possible edge case."});
+
+const DIFF={Beginner:{d:1,t:90,h:5},Intermediate:{d:2,t:70,h:8},Advanced:{d:3,t:55,h:10},Expert:{d:3,t:40,h:12}};
+const DIMS=["Role","Task","Context","Format"];
+const TIPS={Role:"Open with a role (\"You are a...\") so the model picks the right expertise and tone.",Task:"State one clear action verb and the exact job to be done.",Context:"Add the facts the model cannot guess: data, audience, constraints, errors.",Format:"Describe the output shape: sections, length, code blocks, or lists."};
+const RATES=[[900,"Prompt Architect","S"],[750,"Prompt Engineer","A"],[550,"Prompt Crafter","B"],[350,"Prompt Apprentice","C"],[0,"Prompt Rookie","D"]];
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+let G=null,diff="Intermediate",timer=null;
+
+function toast(m,t){const d=document.createElement("div");d.className="toast "+(t||"");d.textContent=m;$("#toasts").appendChild(d);setTimeout(()=>{d.style.opacity="0";d.style.transition="opacity .4s";setTimeout(()=>d.remove(),400)},2200)}
+function cu(el,a,b){const t0=performance.now();(function f(t){const p=Math.min(1,(t-t0)/600);el.textContent=Math.round(a+(b-a)*p);if(p<1)requestAnimationFrame(f)})(t0);el.classList.remove("pulse");void el.offsetWidth;el.classList.add("pulse")}
+function fmt(s){return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+
+function hudInit(){
+  $("#hud").innerHTML=[["Score","sc"],["Accuracy","ac"],["Time","tm"],["Moves","mv"],["Wrong","wr"],["Hints","hn"],["Opt. Bonus","ob"]].map(a=>`<div class="stat"><small>${a[0]}</small><b id="${a[1]}">0</b></div>`).join("");
+  $("#ac").textContent="—";$("#tm").textContent="0:00";
+}
+function hud(){
+  if(!G)return;
+  $("#tm").textContent=fmt(Math.floor((Date.now()-G.t0)/1000));
+  $("#mv").textContent=G.moves;$("#wr").textContent=G.wrong;$("#hn").textContent=G.hints;
+  $("#ob").textContent=G.res.reduce((a,r)=>a+r.ob,0);
+  $("#ac").textContent=G.res.length?Math.round(G.res.reduce((a,r)=>a+r.acc,0)/G.res.length*100)+"%":"—";
+}
+
+/* ---------- Start screen ---------- */
+function start(){
+  clearInterval(timer);G=null;hudInit();$("#sc").textContent="0";$("#bar").style.width="0";$("#plabel").textContent="Ready when you are";
+  $("#stage").innerHTML=`<div class="card"><span class="tag">Domain: Coding &amp; Software Development</span>
+  <h2>Turn weak prompts into precise ones</h2>
+  <p class="mu">Six puzzles across three challenge types: <b>Build the Prompt</b>, <b>Clean the Prompt</b> and <b>Choose the Best Prompt</b>. Earn points for accuracy and speed, and lose them for wrong moves and hints.</p>
+  <p><b>Choose your difficulty</b></p>
+  <div class="dif" id="dif">${Object.keys(DIFF).map(k=>`<button data-d="${k}" class="${k===diff?"on":""}">${k}</button>`).join("")}</div>
+  <p class="mu" id="dd"></p>
+  <button class="btn" id="go">Start the puzzle ▶</button></div>`;
+  dd();
+}
+function dd(){const d=DIFF[diff];const el=$("#dd");if(el)el.textContent=`${d.d} distractor block(s) per puzzle · ${d.t}s speed target · hint cost −${d.h} pts`}
+
+/* ---------- Game flow ---------- */
+function startGame(){
+  G={d:DIFF[diff],list:shuf(SC),types:shuf(["build","build","clean","clean","choose","choose"]),i:0,score:0,moves:0,wrong:0,hints:0,res:[],dna:{Role:[0,0],Task:[0,0],Context:[0,0],Format:[0,0]},t0:Date.now()};
+  hudInit();$("#sc").textContent="0";hud();
+  clearInterval(timer);timer=setInterval(hud,1000);
+  renderQ();
+}
+const blk=i=>`<div class="blk" draggable="true" data-id="${i.id}">${esc(i.x)}</div>`;
+function renderQ(){
+  const s=G.list[G.i],t=G.types[G.i],n=G.list.length;
+  G.q={wrong:0,hints:0,moves:0,t:Date.now(),done:false,sel:null};
+  const names={build:"Build the Prompt",clean:"Clean the Prompt",choose:"Choose the Best Prompt"};
+  const ins={build:"Drag each block into its matching slot (or tap a block, then a slot). Watch out for noise!",clean:"Tap every line that does NOT belong in a sharp prompt, then press Check.",choose:"Which prompt would most reliably produce the target output?"};
+  let body="";
+  if(t==="build"){
+    G.items=shuf(s.blocks.map((b,k)=>({id:"b"+k,x:b.x,slot:k,k:b.k})).concat(s.dis.slice(0,G.d.d).map((x,k)=>({id:"d"+k,x:x,slot:-1,k:"Noise"}))));
+    G.filled=[null,null,null,null];
+    body=`<div class="slots">${s.blocks.map((b,k)=>`<div class="slot" data-s="${k}"><b>${b.k}</b><span class="ph">Drop block here</span></div>`).join("")}</div><div class="pool">${G.items.map(blk).join("")}</div>`;
+  }else if(t==="clean"){
+    G.items=shuf(s.blocks.map((b,k)=>({id:"b"+k,x:b.x,slot:k,k:b.k,cut:false})).concat(s.dis.slice(0,G.d.d).map((x,k)=>({id:"d"+k,x:x,slot:-1,k:"Noise",cut:false}))));
+    body=`<div>${G.items.map(i=>`<div class="chip" data-id="${i.id}">${esc(i.x)}</div>`).join("")}</div>`;
+  }else{
+    G.opts=shuf([{id:"w",x:s.weak},{id:"o",x:s.opt},{id:"v",x:s.over}]);
+    body=G.opts.map(o=>`<div class="opt" data-id="${o.id}"><div class="code">${esc(o.x)}</div></div>`).join("");
+  }
+  $("#bar").style.width=(G.i/n*100)+"%";
+  $("#plabel").textContent=`Puzzle ${G.i+1} of ${n} · ${diff}`;
+  $("#stage").innerHTML=`<div class="card"><span class="tag">${names[t]}</span><h2>${esc(s.t)}</h2>
+  <div class="target"><small>TARGET OUTPUT</small><br>${esc(s.desired)}</div><p class="mu">${ins[t]}</p>${body}
+  <div class="row"><button class="btn ghost" id="hint">💡 Hint (−${G.d.h})</button>${t==="clean"?'<button class="btn" id="check">Check ✔</button>':""}</div></div>`;
+}
+
+function place(id,si){
+  const q=G.q;if(q.done)return;
+  const it=G.items.find(x=>x.id===id);
+  if(!it||it.used||G.filled[si]!==null)return;
+  const dim=DIMS[si],el=document.querySelector(`.blk[data-id="${id}"]`),sl=document.querySelector(`.slot[data-s="${si}"]`);
+  q.moves++;G.moves++;G.dna[dim][1]++;
+  document.querySelectorAll(".blk.sel").forEach(e=>e.classList.remove("sel"));q.sel=null;
+  if(it.slot===si){
+    it.used=true;G.filled[si]=id;G.dna[dim][0]++;
+    sl.classList.add("ok");sl.innerHTML=`<b>${dim}</b>${esc(it.x)}`;
+    if(el)el.remove();
+    toast("✅ Perfect fit!","ok");
+    if(G.filled.every(Boolean))finish(4/(4+q.wrong));
+  }else{
+    q.wrong++;G.wrong++;
+    sl.classList.remove("shake");void sl.offsetWidth;sl.classList.add("shake");
+    toast(it.slot<0?"🚫 That block is noise":"↔️ Wrong slot — try another","bad");
+  }
+  hud();
+}
+function hintQ(){
+  const q=G.q;if(q.done)return;const t=G.types[G.i];let ok=false;
+  if(t==="build"){const si=G.filled.findIndex(x=>x===null);const it=G.items.find(x=>x.slot===si&&!x.used);const el=it&&document.querySelector(`.blk[data-id="${it.id}"]`);if(el){el.classList.add("hint");ok=true}}
+  else if(t==="clean"){const it=G.items.find(x=>x.slot<0&&!x.cut);const el=it&&document.querySelector(`.chip[data-id="${it.id}"]`);if(el){el.classList.add("hint");ok=true}}
+  else{const o=G.opts.find(x=>x.id!=="o"&&!document.querySelector(`.opt[data-id="${x.id}"]`).classList.contains("dim"));if(o){document.querySelector(`.opt[data-id="${o.id}"]`).classList.add("dim");ok=true}}
+  if(ok){q.hints++;G.hints++;toast(`💡 Hint used (−${G.d.h} pts)`,"warn");hud()}else toast("No more hints available","warn");
+}
+function checkClean(){
+  const q=G.q;if(q.done)return;
+  let miss=0,bad=0;
+  G.items.forEach(it=>{
+    const el=document.querySelector(`.chip[data-id="${it.id}"]`);el.classList.remove("hint");
+    if(it.slot<0){if(!it.cut){miss++;el.classList.add("wrong")}else el.classList.add("good")}
+    else{const d=G.dna[it.k];d[1]++;if(it.cut){bad++;el.classList.add("wrong")}else{d[0]++;el.classList.add("good")}}
+  });
+  q.wrong+=miss+bad;G.wrong+=miss+bad;
+  finish(Math.max(0,(G.items.length-miss-bad)/G.items.length));hud();
+}
+function pickOpt(id){
+  const q=G.q;if(q.done)return;
+  q.moves++;G.moves++;
+  const good=id==="o";
+  DIMS.forEach(d=>{G.dna[d][1]++;if(good)G.dna[d][0]++});
+  document.querySelector(`.opt[data-id="${id}"]`).classList.add(good?"good":"wrong");
+  document.querySelector('.opt[data-id="o"]').classList.add("good");
+  if(!good){q.wrong++;G.wrong++}
+  toast(good?"🎯 Best prompt found!":"❌ That one loses to the optimized prompt",good?"ok":"bad");
+  finish(good?1:0);hud();
+}
+function finish(acc){
+  const q=G.q;q.done=true;
+  const lim=G.d.t,el=(Date.now()-q.t)/1000;
+  const pen=q.wrong*5+q.hints*G.d.h,tb=Math.max(0,Math.round((lim-el)/lim*10)),ob=(q.wrong===0&&q.hints===0)?10:0;
+  const pts=Math.max(0,Math.min(120,Math.round(acc*100-pen+tb+ob)));
+  G.res.push({acc:acc,pts:pts,tb:tb,ob:ob,pen:Math.round(pen),el:Math.round(el)});
+  const old=G.score;G.score+=pts;cu($("#sc"),old,G.score);
+  toast(`+${pts} points`,pts>=80?"ok":"warn");
+  setTimeout(reveal,700);
+}
+function reveal(){
+  const s=G.list[G.i],r=G.res[G.i],last=G.i===G.list.length-1;
+  const d=document.createElement("div");d.className="card";
+  d.innerHTML=`<h3>+${r.pts} pts <small>accuracy ${Math.round(r.acc*100)}% · time bonus +${r.tb} · optimization bonus +${r.ob} · penalties −${r.pen}</small></h3>
+  <div class="cmp"><div class="bad"><h4>❌ Weak prompt</h4><p class="code">${esc(s.weak)}</p><p class="out"><small>AI OUTPUT</small><br>${esc(s.wo)}</p></div>
+  <div class="good"><h4>✅ Optimized prompt</h4><p class="code">${esc(s.opt)}</p><p class="out"><small>AI OUTPUT</small><br>${esc(s.oo)}</p></div></div>
+  <p class="mu">⚠️ Over-engineered version: ${esc(s.over)}</p>
+  <p class="pr">💡 <b>Principle:</b> ${esc(s.pr)}</p>
+  <button class="btn" id="next">${last?"See my report →":"Next puzzle →"}</button>`;
+  $("#stage").appendChild(d);d.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+function next(){G.i++;if(G.i>=G.list.length)report();else{renderQ();window.scrollTo({top:0,behavior:"smooth"})}}
+
+/* ---------- Report ---------- */
+function report(){
+  clearInterval(timer);hud();
+  const n=G.list.length,ps=Math.round(G.score/(n*120)*1000);
+  const rt=RATES.find(r=>ps>=r[0]),idx=RATES.indexOf(rt),nm=idx>0?RATES[idx-1]:null;
+  const pct=DIMS.map(d=>G.dna[d][1]?Math.round(G.dna[d][0]/G.dna[d][1]*100):0);
+  const wi=pct.indexOf(Math.min.apply(null,pct)),wd=DIMS[wi];
+  const avgT=G.res.reduce((a,r)=>a+r.el,0)/n;
+  let fb=`Your weakest prompt component was <b>${wd}</b> (${pct[wi]}%). ${TIPS[wd]}`;
+  if(G.hints>2)fb+=` You used ${G.hints} hints, so try one more run with none to unlock bigger bonuses.`;
+  if(avgT>G.d.t*0.8)fb+=` Your average pace was ${Math.round(avgT)}s per puzzle, so speed is a good next target.`;
+  if(G.wrong===0)fb+=" Flawless placement, no wrong moves at all!";
+  let bi=0;G.res.forEach((r,i)=>{if(r.pts>G.res[bi].pts)bi=i});
+  const bs=G.list[bi],final=bs.blocks.map(b=>`[${b.k}] ${b.x}`).join("\n");
+  const col=p=>p>=75?"#34d399":p>=50?"#fbbf24":"#f87171";
+  let p1="",p2="";
+  for(let x=0;x<=270;x+=6){const y=Math.sin(x/28)*28;p1+=(x?"L":"M")+x+" "+(60+y).toFixed(1)+" ";p2+=(x?"L":"M")+x+" "+(60-y).toFixed(1)+" "}
+  let rungs="";
+  DIMS.forEach((d,i)=>{const x=30+i*70,y=Math.sin(x/28)*28;
+    rungs+=`<line x1="${x}" y1="${(60+y).toFixed(1)}" x2="${x}" y2="${(60-y).toFixed(1)}" stroke="${col(pct[i])}" stroke-width="${2+pct[i]/20}" stroke-linecap="round"/><circle cx="${x}" cy="${(60+y).toFixed(1)}" r="5" fill="#8b5cf6"/><circle cx="${x}" cy="${(60-y).toFixed(1)}" r="5" fill="#22d3ee"/><text x="${x}" y="132" fill="#9aa0c8" font-size="10" text-anchor="middle">${d}</text>`});
+  $("#bar").style.width="100%";$("#plabel").textContent="Challenge complete 🎉";
+  $("#stage").innerHTML=`<div class="card" style="text-align:center"><span class="tag">Prompt Performance Report</span>
+  <div class="big" id="ps">0</div><small>PROMPT SCORE / 1000</small>
+  <h2 style="margin-top:10px">${rt[1]} · Rank ${rt[2]}</h2>
+  <p class="mu">${nm?`Next milestone: <b>${nm[1]}</b> at ${nm[0]} points (${Math.max(0,nm[0]-ps)} to go)`:"You reached the top rank. Try Expert difficulty!"}</p></div>
+  <div class="card"><h3>🧬 Prompt DNA</h3>
+  <svg viewBox="0 0 270 140" style="width:100%;max-width:420px;display:block;margin:auto"><path d="${p1}" fill="none" stroke="#8b5cf6" stroke-width="3"/><path d="${p2}" fill="none" stroke="#22d3ee" stroke-width="3"/>${rungs}</svg>
+  ${DIMS.map((d,i)=>`<div class="rung"><span>${d}</span><div><i data-w="${pct[i]}"></i></div><span>${pct[i]}%</span></div>`).join("")}</div>
+  <div class="card"><h3>🎯 Personalized feedback</h3><p>${fb}</p>
+  <p class="mu">Accuracy ${$("#ac").textContent} · Moves ${G.moves} · Wrong ${G.wrong} · Hints ${G.hints} · Optimization bonus ${$("#ob").textContent}</p></div>
+  <div class="card"><h3>✨ Your final optimized prompt <small>(from "${esc(bs.t)}")</small></h3><div class="code" id="fp">${esc(final)}</div>
+  <div class="row"><button class="btn" id="copy">Copy prompt</button><button class="btn ghost" id="again">🔁 Play again (new shuffle)</button></div></div>`;
+  cu($("#ps"),0,ps);
+  setTimeout(()=>document.querySelectorAll(".rung i").forEach(e=>{e.style.width=e.dataset.w+"%"}),60);
+  toast(`🏆 ${rt[1]}!`,"ok");
+}
+
+/* ---------- Event delegation ---------- */
+document.addEventListener("click",e=>{
+  const T=e.target;
+  const dfb=T.closest("#dif button");
+  if(dfb){diff=dfb.dataset.d;document.querySelectorAll("#dif button").forEach(b=>b.classList.toggle("on",b===dfb));dd();return}
+  if(T.closest("#go")||T.closest("#again")){startGame();window.scrollTo({top:0,behavior:"smooth"});return}
+  if(T.closest("#next")){next();return}
+  if(T.closest("#copy")){const txt=$("#fp").textContent;
+    const ok=()=>toast("📋 Prompt copied","ok");
+    try{navigator.clipboard.writeText(txt).then(ok,()=>{fallbackCopy(txt);ok()})}catch(err){fallbackCopy(txt);ok()}return}
+  if(!G||!G.q||G.q.done)return;
+  if(T.closest("#hint")){hintQ();return}
+  if(T.closest("#check")){checkClean();return}
+  const b=T.closest(".blk");
+  if(b){document.querySelectorAll(".blk.sel").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");b.classList.remove("hint");G.q.sel=b.dataset.id;return}
+  const sl=T.closest(".slot");
+  if(sl&&G.q.sel){place(G.q.sel,+sl.dataset.s);return}
+  const ch=T.closest(".chip");
+  if(ch){const it=G.items.find(x=>x.id===ch.dataset.id);it.cut=!it.cut;ch.classList.toggle("cut",it.cut);ch.classList.remove("hint");G.q.moves++;G.moves++;hud();return}
+  const op=T.closest(".opt");
+  if(op)pickOpt(op.dataset.id);
+});
+function fallbackCopy(t){const a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy")}catch(e){}a.remove()}
+document.addEventListener("dragstart",e=>{const b=e.target.closest&&e.target.closest(".blk");if(b){e.dataTransfer.setData("text/plain",b.dataset.id);G.q.sel=b.dataset.id}});
+document.addEventListener("dragover",e=>{const s=e.target.closest&&e.target.closest(".slot");if(s){e.preventDefault();s.classList.add("over")}});
+document.addEventListener("dragleave",e=>{const s=e.target.closest&&e.target.closest(".slot");if(s)s.classList.remove("over")});
+document.addEventListener("drop",e=>{
+  const s=e.target.closest&&e.target.closest(".slot");
+  if(s){e.preventDefault();s.classList.remove("over");const id=e.dataTransfer.getData("text/plain")||(G&&G.q&&G.q.sel);if(id&&G&&G.q&&!G.q.done)place(id,+s.dataset.s)}
+});
+start();
+</script>
+</body>
+</html>
