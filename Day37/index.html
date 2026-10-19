@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Task Compass</title>
+<style>
+:root{color-scheme:dark;--bd:rgba(255,255,255,.16);--mut:#a3abd1;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#eef0ff;background:linear-gradient(135deg,#0b0d1a,#1b1046,#0a2c3d,#0b0d1a);background-size:300% 300%;animation:bg 18s ease infinite}
+@keyframes bg{50%{background-position:100% 50%}}
+@keyframes pulse{50%{opacity:.55}}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+@keyframes snap{0%{transform:scale(1.35) rotate(-7deg)}100%{transform:none}}
+@keyframes fall{to{transform:translateY(105vh) rotate(720deg)}}
+.wrap{max-width:920px;margin:0 auto;padding:16px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.logo{font-weight:800;font-size:20px}
+.pg{display:flex;gap:5px}.pg u{width:24px;height:7px;border-radius:9px;background:#ffffff22;transition:.4s}
+.pg u.d{background:#3ddc97}.pg u.c{background:linear-gradient(90deg,#8b7bff,#2fd2ff);animation:pulse 1.4s infinite}
+.glass{background:rgba(255,255,255,.07);border:1px solid var(--bd);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:22px;padding:18px;animation:rise .5s}
+h1{font-size:clamp(34px,8vw,56px);margin:6px 0;background:linear-gradient(90deg,#8b7bff,#2fd2ff,#3ddc97,#8b7bff);background-size:300%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:bg 6s linear infinite}
+.mut{color:var(--mut)}.c{text-align:center}
+.stg{font:700 12px monospace;letter-spacing:.12em;color:#2fd2ff;text-transform:uppercase}
+.ticket{background:#0006;border:1px solid var(--bd);border-left:6px solid #8b7bff;border-radius:14px;padding:12px 16px;margin:12px 0}
+.tag{font:700 11px monospace;color:#ffd24c;letter-spacing:.1em}
+.ticket h2{margin:6px 0 0;font-size:19px;line-height:1.35}
+.lane{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px;margin:14px 0}
+.slot{width:130px;min-height:104px;border:2px dashed #ffffff44;border-radius:16px;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--mut);font-size:12px;transition:.25s;cursor:pointer;padding:4px}
+.slot.hl{border-color:#2fd2ff;background:#2fd2ff14;animation:pulse 1.6s infinite}
+.slot.ov{border-color:#3ddc97;background:#3ddc9722;box-shadow:0 0 22px #3ddc9755}
+.slot.f{border-style:solid;border-color:transparent;background:none;animation:none}
+.slot.snap .rc{animation:snap .45s cubic-bezier(.2,1.6,.4,1)}
+.ar{font-style:normal;color:#2fd2ff;font-size:20px}
+.rc{width:122px;padding:10px 6px;border-radius:16px;text-align:center;cursor:grab;user-select:none;-webkit-user-select:none;border:1px solid var(--c);background:linear-gradient(160deg,color-mix(in srgb,var(--c) 34%,#15172c),#15172c);box-shadow:0 6px 18px #0006,0 0 0 1px #ffffff12 inset;transition:transform .2s,box-shadow .2s}
+.rc:hover{transform:translateY(-5px) rotate(-1.5deg);box-shadow:0 12px 26px #0008,0 0 18px var(--c)}
+.rc b{display:block;font-size:28px}.rc span{font-size:12px;font-weight:600}
+.pool{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:14px 0}
+button{font:700 15px inherit;font-family:inherit;color:#fff;border:0;border-radius:14px;padding:12px 26px;cursor:pointer;background:linear-gradient(90deg,#8b7bff,#2fd2ff);box-shadow:0 8px 22px #2fd2ff33;transition:.2s}
+button:hover:not(:disabled){transform:translateY(-2px) scale(1.03)}
+button:disabled{opacity:.35;cursor:not-allowed}
+.rev{margin-top:12px;padding:14px;border-radius:16px;background:#0005;border:1px solid var(--bd);animation:rise .5s}
+.rev h3{margin:10px 0 4px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#2fd2ff}
+.rev p{margin:4px 0;line-height:1.5}
+.chip{display:inline-block;margin:3px 4px 3px 0;padding:4px 10px;border-radius:99px;font-size:13px;border:1px solid var(--c);background:color-mix(in srgb,var(--c) 22%,transparent)}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;margin:8px 0}
+.nd{padding:10px 12px;border-radius:12px;background:#ffffff10;border:1px solid var(--bd);position:relative;font-size:13px;transition:.4s}
+.nd.on{background:#3ddc9733;border-color:#3ddc97;transform:scale(1.08);box-shadow:0 0 18px #3ddc9755}
+.nd .tk{position:absolute;top:-15px;right:-6px;opacity:0;transition:.3s}.nd.on .tk{opacity:1}
+.br{margin:14px 0}.br div.l{display:flex;justify-content:space-between;font-weight:600;margin-bottom:5px}
+.tr{height:14px;border-radius:9px;background:#ffffff14;overflow:hidden}
+.tr i{display:block;height:100%;width:0;border-radius:9px;transition:width 1.3s cubic-bezier(.2,.8,.2,1)}
+.cf{position:fixed;top:-20px;width:10px;height:14px;z-index:9;pointer-events:none;animation:fall 3s linear forwards}
+ul.rf{padding-left:0;list-style:none}ul.rf li{margin:10px 0;padding:12px 14px;border-radius:14px;background:#ffffff0c;border:1px solid var(--bd);line-height:1.5}
+@media(max-width:560px){.rc,.slot{width:104px}.slot{min-height:92px}.ticket h2{font-size:17px}}
+</style></head><body><div class="wrap" id="app"></div>
+<script>
+const R={ceo:["Founder / CEO","👑","#f5b942"],pm:["Product Manager","🧭","#8b7bff"],eng:["Engineer","💻","#2fd2ff"],des:["Designer","🎨","#ff6fb5"],sup:["Customer Support","🎧","#3ddc97"],mkt:["Marketing","📣","#ff8a4c"],sal:["Sales","🤝","#ffd24c"],dat:["Data Analyst","📊","#5b9bff"]};
+const ALL=Object.keys(R);
+const S1=[
+{t:"Customers report the app crashes whenever they upload a photo on Android.",o:"eng",a:["sup","pm","dat"],w:"The crash lives in the code, so an Engineer usually diagnoses and fixes it. Support gathers device details, Product sets the priority, and Data can size how many people are affected."},
+{t:"Many new users quit during onboarding. Step 2 seems confusing.",o:"des",a:["pm","dat","sup"],w:"Confusing screens are mostly a design problem, so a Designer typically leads the rethink. Data shows where people drop off, Product weighs trade-offs, and Support shares what users actually say."},
+{t:"A promising company asks for a custom pricing plan for 200 seats.",o:"sal",a:["ceo","pm","dat"],w:"Sales usually owns the customer relationship and the deal. In startups the Founder often weighs in on pricing exceptions, Product checks what is feasible, and Data helps model the margins."}];
+const S2=[
+{t:"Payments fail for some customers on iPhones.",o:["sup","dat","eng","pm"],p:["sup","dat","eng","pm","mkt","des","sal"],w:"Support commonly triages first and captures the reports. Data checks how widespread it is. Engineering diagnoses and fixes. Product then decides release timing and what customers hear. Teams differ, but this order keeps facts flowing before the fix."},
+{t:"A new feature just finished testing and is ready to launch.",o:["pm","eng","mkt","sup"],p:["pm","eng","mkt","sup","sal","des","dat"],w:"Product often confirms the go-ahead, Engineering ships it, Marketing tells the world, and Support gets briefed so they can answer questions on day one."},
+{t:"An investor asks for last month’s growth numbers.",o:["dat","pm","ceo"],p:["dat","pm","ceo","mkt","eng","sup","des"],w:"Data pulls the numbers, Product adds context on what drove them, and the Founder frames the story for the investor. Three steps are often enough here."}];
+const S3=[
+{t:"Customer satisfaction scores suddenly drop.",l:"sup",s:["dat","pm","eng"],w:"Support hears customers first, so they often lead the investigation. Data finds patterns, Product sets priorities, and Engineering addresses root causes. No single team sees the whole picture.",f:"Support shares customer stories → Data finds patterns → Product sets priorities → Engineering fixes root causes → Support updates customers"},
+{t:"A major feature is delayed by three weeks.",l:"pm",s:["eng","des","ceo"],w:"Product usually owns the plan and the trade-offs. Engineering explains the blockers, Design may trim scope, and the Founder approves a new date when stakes are high.",f:"Engineering explains blockers → Product re-plans scope → Design trims work → Founder approves the date → Product informs everyone"},
+{t:"Negative reviews start appearing online.",l:"mkt",s:["sup","pm","eng"],w:"Marketing often leads the public response and tone. Support reaches out to unhappy customers, Product spots recurring complaints, and Engineering fixes real defects behind them.",f:"Support collects the complaints → Marketing drafts a public reply → Product picks themes to fix → Engineering ships fixes → Marketing shares progress"}];
+const ST=[
+{n:"Who Owns This?",sub:"Drag ONE role into the highlighted ownership slot (or tap a card).",it:S1,cnt:q=>1,lb:k=>"Primary Owner"},
+{n:"Task Routing",sub:"Build the workflow: place roles in the order the work moves.",it:S2,cnt:q=>q.o.length,lb:k=>"Step "+(k+1)},
+{n:"Collaboration Challenge",sub:"Assign 2–4 roles. The first slot is the lead; the rest support.",it:S3,cnt:q=>4,lb:k=>k?"Support":"Lead"}];
+const A=document.getElementById("app");let G,ac;
+const bp=(f=520,d=.1)=>{try{ac=ac||new AudioContext();const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=f;o.type="sine";g.gain.value=.04;o.connect(g);g.connect(ac.destination);o.start();g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+d);o.stop(ac.currentTime+d)}catch(e){}};
+const card=(id,d)=>`<div class="rc" ${d?'draggable="true"':''} data-id="${id}" style="--c:${R[id][2]}"><b>${R[id][1]}</b><span>${R[id][0]}</span></div>`;
+const chip=id=>`<span class="chip" style="--c:${R[id][2]}">${R[id][1]} ${R[id][0]}</span>`;
+const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
+function intro(){G={s:0,i:0,c:{own:[],lead:[],col:[],wf:[]},wr:0,ex:0,ms:0};
+A.innerHTML=`<div class="glass c" style="padding:34px 18px"><div class="stg">🚀 Startup Edition</div><h1>Task Compass</h1><p class="mut" style="font-size:18px">Learn how work flows through real organizations.</p>
+<p style="max-width:540px;margin:16px auto;line-height:1.6">Nine small situations inside a growing startup. Decide who owns what, how work should move, and who needs to work together. There are no wrong-answer buzzers, just reasoning to explore.</p>
+<div class="pool">${["ceo","pm","eng","des","sup","mkt","sal","dat"].map(x=>card(x)).join("")}</div>
+<button id="st">Start the simulation ➜</button></div>`}
+function load(){const s=ST[G.s],q=s.it[G.i];G.sl=Array(s.cnt(q)).fill(null);G.lock=0;G.rev="";view()}
+function view(){const s=ST[G.s],q=s.it[G.i],n=G.s*3+G.i;
+const pool=(q.p||ALL).filter(x=>!G.sl.includes(x));
+const ready=G.s==0?G.sl[0]:G.s==1?G.sl.every(Boolean):G.sl[0]&&G.sl.filter(Boolean).length>1;
+const sep=G.s==1?'<i class="ar">➜</i>':'';
+A.innerHTML=`<div class="top"><div class="logo">🧭 Task Compass</div><div class="pg">${[...Array(9)].map((_,k)=>`<u class="${k<n?"d":k==n?"c":""}"></u>`).join("")}</div></div>
+<div class="glass"><div class="stg">Stage ${G.s+1} of 3 · ${s.n}</div><p class="mut" style="margin:4px 0">${s.sub}</p>
+<div class="ticket"><span class="tag">🎫 TASK-${100+n*7}</span><h2>${q.t}</h2></div>
+<div class="lane">${G.sl.map((id,k)=>`<div class="slot ${id?"f":G.s==0?"hl":""} ${G.snap===k?"snap":""}" data-k="${k}">${id?card(id):s.lb(k)}</div>`).join(sep)}</div>
+${G.lock?G.rev:`<div class="pool">${pool.map(x=>card(x,1)).join("")}</div><div class="c"><button id="go" ${ready?"":"disabled"}>Submit ➜</button></div>`}</div>`;
+G.snap=-1}
+function place(id,k){if(G.lock)return;const i=G.sl.indexOf(id);if(i>-1)G.sl[i]=null;if(k==null)k=G.sl.indexOf(null);if(k<0)return;G.sl[k]=id;G.snap=k;bp(520+k*90);view()}
+function submit(){const s=G.s,q=ST[s].it[G.i],sl=G.sl,last=s==2&&G.i==2;let h="";
+if(s==0){const p=sl[0],ok=p==q.o,part=q.a.includes(p),sc=ok?1:part?.5:0;G.c.own.push(sc);if(!ok)G.wr++;
+h=`<h3>${ok?"✓ You picked the usual owner":"Another common view"}</h3><p>${ok?"":"You chose "+R[p][0]+". "}</p><h3>✓ Primary Owner</h3>${chip(q.o)}<h3>✓ Why they own it</h3><p>${q.w}</p><h3>✓ Roles that may assist</h3>${q.a.map(chip).join("")}`}
+else if(s==1){const pos=sl.filter((x,k)=>x==q.o[k]).length,pres=sl.filter(x=>q.o.includes(x)).length;G.c.wf.push((pos/q.o.length+pres/q.o.length)/2);
+const nodes=["📥 Incoming",...q.o.map(x=>R[x][1]+" "+R[x][0]),"✅ Resolved"];
+h=`<h3>Watch the work move</h3><div class="flow">${nodes.map((x,k)=>`<div class="nd">${x}<span class="tk">🎫</span></div>`).join('<i class="ar">➜</i>')}</div><p>${pos} of ${q.o.length} steps matched this common flow, and ${pres} of ${q.o.length} roles were part of it.</p><h3>Why this order is commonly used</h3><p>${q.w}</p>`}
+else{const ch=sl.filter(Boolean),l=sl[0],all=[q.l,...q.s],hit=ch.filter(x=>all.includes(x)).length;
+G.c.lead.push(l==q.l?1:all.includes(l)?.5:0);G.c.col.push(Math.min(1,hit/all.length));G.ex+=ch.length-hit;G.ms+=all.length-hit;
+h=`<h3>Primary Owner</h3>${chip(q.l)}<h3>Supporting Teams</h3>${q.s.map(chip).join("")}<h3>Reasoning</h3><p>${q.w}</p><h3>Possible Communication Flow</h3><p>${q.f}</p><p class="mut">Complex problems usually need several people. Your team had ${hit} of ${all.length} of the roles often involved.</p>`}
+G.lock=1;G.rev=`<div class="rev">${h}<div class="c" style="margin-top:14px"><button id="nx">${last?"See my reflection 🎉":"Next ➜"}</button></div></div>`;view();bp(660,.25);
+if(s==1)[...A.querySelectorAll(".nd")].forEach((n,k)=>setTimeout(()=>{n.classList.add("on");bp(440+k*90)},500+k*700))}
+function next(){G.i++;if(G.i>2){G.i=0;G.s++}if(G.s>2)return fin();load()}
+const lab=v=>v>=.8?"Strong instinct":v>=.5?"Growing":"Worth exploring";
+function fin(){const c=G.c,sc={Ownership:avg(c.own),Delegation:(avg(c.lead)+Math.max(0,1-G.ex/6))/2,Collaboration:avg(c.col),"Workflow Thinking":avg(c.wf)};
+const col={Ownership:"#8b7bff",Delegation:"#ffd24c",Collaboration:"#3ddc97","Workflow Thinking":"#2fd2ff"};
+const best=Object.keys(sc).sort((a,b)=>sc[b]-sc[a])[0],o=G.wr+G.ex;
+A.innerHTML=`<div class="top"><div class="logo">🧭 Task Compass</div></div><div class="glass"><div class="stg">Your understanding map</div><h2 style="margin:6px 0">Simulation complete 🎉</h2>
+${Object.keys(sc).map(k=>`<div class="br"><div class="l"><span>${k}</span><span style="color:${col[k]}">${lab(sc[k])}</span></div><div class="tr"><i data-w="${Math.max(8,Math.round(sc[k]*100))}" style="background:${col[k]}"></i></div></div>`).join("")}
+<ul class="rf"><li>🌟 <b>What you understood well:</b> Your strongest instincts showed up in <b>${best}</b>.</li>
+<li>🎯 <b>Where you tended to over-assign:</b> ${o?`Responsibility sometimes landed on one person or on extra roles (${o} time${o>1?"s":""}) when the work belonged elsewhere. Handing too much to one seat can create bottlenecks.`:"You kept responsibilities focused. Little over-assigning showed up."}</li>
+<li>🤝 <b>Where you underestimated collaboration:</b> ${G.ms?`In the larger challenges, ${G.ms} helpful teammate${G.ms>1?"s":""} didn’t make it onto your team. Big problems often benefit from more perspectives.`:"You brought in supporting teams thoughtfully in the bigger scenarios."}</li>
+<li>💡 <b>One insight:</b> Many real workplace problems are solved by teams rather than individuals, and clear ownership usually makes that teamwork smoother.</li></ul>
+<div class="c"><button id="st">Play again ↻</button></div></div>`;
+setTimeout(()=>A.querySelectorAll(".tr i").forEach(i=>i.style.width=i.dataset.w+"%"),150);
+for(let k=0;k<45;k++){const d=document.createElement("div");d.className="cf";d.style.cssText=`left:${Math.random()*100}vw;background:${Object.values(col)[k%4]};animation-delay:${Math.random()*1.2}s;animation-duration:${2.4+Math.random()*2}s`;document.body.appendChild(d);setTimeout(()=>d.remove(),5200)}bp(784,.4)}
+A.addEventListener("click",e=>{const t=e.target;
+if(t.closest("#st")){intro();G.s=0;load();return}
+if(t.closest("#go"))return submit();if(t.closest("#nx"))return next();
+const sl=t.closest(".slot");if(sl&&!G.lock){const k=+sl.dataset.k;if(G.sl[k]){G.sl[k]=null;view()}return}
+const c=t.closest('.rc[draggable="true"]');if(c)place(c.dataset.id)});
+A.addEventListener("dragstart",e=>{const c=e.target.closest&&e.target.closest(".rc");if(c)e.dataTransfer.setData("text/plain",c.dataset.id)});
+A.addEventListener("dragover",e=>{const s=e.target.closest(".slot");if(s){e.preventDefault();s.classList.add("ov")}});
+A.addEventListener("dragleave",e=>{const s=e.target.closest(".slot");if(s)s.classList.remove("ov")});
+A.addEventListener("drop",e=>{const s=e.target.closest(".slot");if(!s)return;e.preventDefault();const id=e.dataTransfer.getData("text/plain");if(R[id])place(id,+s.dataset.k)});
+intro();document.querySelector("#st").onclick=null;
+</script></body></html>
