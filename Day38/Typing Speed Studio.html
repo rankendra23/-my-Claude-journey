@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="system" data-acc="ultra">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Typing Speed Studio</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#eef1f7;--pn:#fff;--ink:#14182e;--mut:#6b7392;--ln:#dde2ee;--acc:#3b4cf0;--ok:#14855a;--bad:#d93a4a;--dim:#a7aec6;--fs:26px;--ser:"Iowan Old Style",Palatino,Georgia,serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+:root[data-acc=teal]{--acc:#0d9488}:root[data-acc=amber]{--acc:#c2670a}:root[data-acc=rose]{--acc:#d6336c}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0b0f22;--pn:#131a35;--ink:#e7eafc;--mut:#8b93b8;--ln:#232b52;--acc:#7c8bff;--ok:#4ade80;--bad:#ff6b78;--dim:#4c5580}:root:not([data-theme=light])[data-acc=teal]{--acc:#2dd4bf}:root:not([data-theme=light])[data-acc=amber]{--acc:#fbbf24}:root:not([data-theme=light])[data-acc=rose]{--acc:#fb7aa8}}
+:root[data-theme=dark]{--bg:#0b0f22;--pn:#131a35;--ink:#e7eafc;--mut:#8b93b8;--ln:#232b52;--acc:#7c8bff;--ok:#4ade80;--bad:#ff6b78;--dim:#4c5580}:root[data-theme=dark][data-acc=teal]{--acc:#2dd4bf}:root[data-theme=dark][data-acc=amber]{--acc:#fbbf24}:root[data-theme=dark][data-acc=rose]{--acc:#fb7aa8}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh}
+button,select,textarea{font:inherit;color:inherit}button{cursor:pointer}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.wrap{max-width:1040px;margin:0 auto;padding:16px}
+header{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:14px}
+.logo{font:700 26px var(--ser);letter-spacing:-.5px}.logo small{font:500 13px system-ui;color:var(--mut);margin-left:8px}
+.tools{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tb{background:var(--pn);border:1px solid var(--ln);border-radius:9px;padding:5px 10px;min-height:34px}
+.tb.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.dots button{width:20px;height:20px;border-radius:50%;border:2px solid var(--pn);padding:0;min-height:0;box-shadow:0 0 0 1px var(--ln)}
+#bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.grp{display:flex;background:var(--pn);border:1px solid var(--ln);border-radius:11px;padding:3px;flex-wrap:wrap}
+.grp button{background:none;border:0;border-radius:8px;padding:5px 11px;color:var(--mut);transition:background .15s,color .15s}
+.grp button.on{background:var(--acc);color:#fff}.grp button:hover:not(.on){color:var(--ink)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));gap:8px;margin-bottom:10px}
+.stat{background:var(--pn);border:1px solid var(--ln);border-radius:12px;padding:8px 12px}
+.stat b{display:block;font:600 22px var(--mono);font-variant-numeric:tabular-nums}.stat span{font-size:12px;color:var(--mut)}
+.prog{height:5px;background:var(--ln);border-radius:9px;overflow:hidden;margin-bottom:14px}.prog i{display:block;height:100%;width:0;background:var(--acc);transition:width .2s}
+.stage{position:relative;background:var(--pn);border:1px solid var(--ln);border-radius:18px;padding:22px 26px;cursor:text}
+#box{height:calc(var(--fs)*1.9*3);overflow:hidden;position:relative}
+#words{position:relative;font:var(--fs)/1.9 var(--mono);transition:transform .15s;white-space:normal;word-break:break-word}
+.w{display:inline-block;white-space:pre}
+#words span span{color:var(--dim);border-radius:3px;transition:color .1s,background .1s}
+#words .c{color:var(--ink)}#words .x{color:var(--bad);background:color-mix(in srgb,var(--bad) 18%,transparent)}#words .m{color:var(--bad);text-decoration:underline}
+#words .cur{box-shadow:inset 2px 0 var(--acc);animation:bl 1s steps(1) infinite}
+#words.foc .off{opacity:.12}
+@keyframes bl{50%{box-shadow:inset 2px 0 transparent}}
+.hint{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;color:var(--mut);font-size:13px;margin-top:12px}
+kbd{font:12px var(--mono);background:var(--bg);border:1px solid var(--ln);border-bottom-width:2px;border-radius:5px;padding:1px 6px}
+#pause{position:absolute;inset:0;display:grid;place-items:center;background:color-mix(in srgb,var(--pn) 88%,transparent);backdrop-filter:blur(6px);border-radius:18px;font:600 20px var(--ser)}
+.shake{animation:sh .15s}@keyframes sh{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+#in{position:fixed;opacity:0;left:-99px;top:0;width:1px;height:1px}
+.card{background:var(--pn);border:1px solid var(--ln);border-radius:16px;padding:16px 18px;margin-bottom:12px}
+.big{display:flex;flex-wrap:wrap;gap:30px;align-items:flex-end}.big div b{display:block;font:700 56px/1 var(--ser);color:var(--acc)}.big div span{color:var(--mut);font-size:13px}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.row div{background:var(--bg);border-radius:10px;padding:8px 12px}.row b{display:block;font:600 18px var(--mono)}.row span{font-size:12px;color:var(--mut)}
+h2{font:600 17px var(--ser);margin:0 0 8px}
+svg{width:100%;height:auto;display:block}svg path{fill:none;stroke-width:2.2;stroke-linejoin:round}.grid line{stroke:var(--ln)}.grid text{fill:var(--mut);font-size:10px}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.kr{display:flex;gap:4px;justify-content:center;margin-bottom:4px}.kr i{font:normal 12px var(--mono);width:30px;height:30px;display:grid;place-items:center;border-radius:7px;border:1px solid var(--ln);background:color-mix(in srgb,var(--bad) calc(var(--a)*85%),var(--bg))}.kr i.sp{width:200px}
+.badges{display:flex;flex-wrap:wrap;gap:8px}.bd{padding:5px 11px;border-radius:99px;border:1px solid var(--acc);background:color-mix(in srgb,var(--acc) 12%,transparent)}.bd.lk{opacity:.35;border-color:var(--ln);background:none;filter:grayscale(1)}
+ul.sm{margin:0;padding-left:18px}.sm li{margin:3px 0}
+.act{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}.act .tb{padding:8px 16px}
+dialog{background:var(--pn);color:var(--ink);border:1px solid var(--ln);border-radius:16px;width:min(680px,94vw);max-height:88vh}dialog::backdrop{background:#0008}
+textarea{width:100%;min-height:140px;background:var(--bg);border:1px solid var(--ln);border-radius:10px;padding:10px;font:15px var(--mono)}
+table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;padding:5px 6px;border-bottom:1px solid var(--ln)}
+.pb{color:var(--ok);font-weight:600}
+@media(max-width:600px){.stage{padding:14px}.big div b{font-size:42px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+ <div class="logo">Typing Speed Studio<small id="ds"></small></div>
+ <div class="tools" role="toolbar" aria-label="Settings">
+  <button class="tb" id="bf" aria-pressed="false" title="Focus mode (Alt+F)">Focus</button>
+  <button class="tb" id="bs" aria-pressed="false" title="Sound (Alt+S)">Sound</button>
+  <button class="tb" id="fm" aria-label="Smaller text">A−</button><button class="tb" id="fp" aria-label="Larger text">A+</button>
+  <select class="tb" id="th" aria-label="Theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select>
+  <span class="dots" id="dots"></span>
+  <button class="tb" id="bh" title="History (Alt+H)">History</button>
+ </div>
+</header>
+<div id="bar"></div>
+<main id="play">
+ <div class="stats" role="status" aria-live="off" id="hud"></div>
+ <div class="prog"><i id="pg"></i></div>
+ <div class="stage" id="stage"><div id="box" aria-label="Text to type"><div id="words"></div></div><div id="pause" hidden>Paused. Press Esc to resume</div></div>
+ <div class="hint" id="cap"></div>
+ <div class="hint"><span><kbd>Tab</kbd> new text</span><span><kbd>Esc</kbd> pause or resume</span><span><kbd>Alt</kbd>+<kbd>F</kbd> focus</span><span><kbd>Alt</kbd>+<kbd>S</kbd> sound</span><span><kbd>Alt</kbd>+<kbd>H</kbd> history</span></div>
+</main>
+<section id="res" hidden></section>
+</div>
+<input id="in" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Typing input">
+<dialog id="hist"></dialog>
+<dialog id="cust"><h2>Custom text</h2><textarea id="ct" placeholder="Paste or write the text you want to practice"></textarea><div class="act"><button class="tb on" id="cgo">Start typing</button><button class="tb" id="cx">Cancel</button></div></dialog>
+<script>
+const $=s=>document.querySelector(s),pick=a=>a[Math.random()*a.length|0];
+const LS={g(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},s(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let set=Object.assign({cat:'General',lang:'JavaScript',mode:'time',val:30,theme:'system',acc:'ultra',fs:26,sound:false,focus:false,level:1,custom:''},LS.g('tss_set',{}));
+const save=()=>LS.s('tss_set',set);
+const T={
+General:["The quick brown fox jumps over the lazy dog while the morning sun climbs above the quiet hills.","Good habits are built slowly, one small decision at a time, until they feel like second nature.","A warm cup of tea and an unhurried afternoon can make a difficult problem seem manageable.","Travelers often find that the best moments happen far from the planned route and the printed map.","Every city has a rhythm of its own, from early bakeries to the last trains humming home at night.","Practice does not make perfect, but careful practice makes progress steady, visible, and lasting."],
+Academic:["The study examined whether sleep duration influences memory consolidation among university students.","Researchers argue that interdisciplinary collaboration produces more robust and reproducible findings.","In contrast to earlier models, the proposed framework accounts for variance across diverse populations.","The literature review identifies three recurring themes in contemporary theories of economic development.","Statistical significance was assessed at the five percent level using a two-tailed test.","These results suggest that further longitudinal research is necessary to establish causal relationships."],
+Business:["Thank you for your prompt reply; I have attached the revised proposal for your review.","Please find the quarterly report enclosed, highlighting revenue growth and key performance indicators.","We would like to schedule a meeting next week to discuss the project timeline and deliverables.","Our team remains committed to delivering measurable value while respecting the agreed budget.","Kindly confirm receipt of this message and let us know if any clarification is required.","Following our discussion, I will circulate the action items and assign owners by end of day."],
+Medical:["The patient presented with acute chest pain, dyspnea, and diaphoresis lasting approximately thirty minutes.","Administer five hundred milligrams of amoxicillin orally every eight hours for ten days.","An electrocardiogram revealed ST-segment elevation consistent with myocardial infarction.","Hypertension and type two diabetes mellitus are significant risk factors for chronic kidney disease.","Auscultation of the lungs demonstrated bilateral wheezing with prolonged expiration.","Postoperative care includes monitoring vital signs, wound inspection, and early ambulation."],
+Legal:["The parties hereby agree that this agreement shall be governed by the laws of the jurisdiction.","Notwithstanding the foregoing, the licensor shall not be liable for any indirect or consequential damages.","The tenant shall pay rent in advance on or before the first day of each calendar month.","Any dispute arising out of this contract shall be resolved through binding arbitration.","The defendant has the right to remain silent and to be represented by counsel.","This clause survives termination and remains enforceable against successors and assigns."],
+Creative:["The lantern swayed above the harbor, and every shadow seemed to whisper of ships long lost to the fog.","She walked through the empty orchard, where the last apples glowed like small, forgotten moons.","Thunder rolled across the valley, and somewhere a door creaked open on its rusted hinges.","He kept the letter folded in his coat, a quiet promise pressed against the beating of his heart.","Morning arrived softly, painting the rooftops gold and waking the sleepy city one window at a time.","The old clockmaker smiled, for he knew that time, like a good story, rewards patience."]};
+const C={HTML:['<div class="card"><h2>Title</h2></div>','<a href="/about" target="_blank">About</a>','<input type="email" id="mail" required>','<ul><li>One</li><li>Two</li></ul>','<button onclick="save()">Save</button>','<img src="logo.png" alt="Logo">'],
+CSS:['.card { display: flex; gap: 12px; }','body { margin: 0; font-family: sans-serif; }','a:hover { color: #3b4cf0; }','.box { width: 50%; padding: 1rem; }','@media (max-width: 600px) { .nav { display: none; } }','h1 { font-size: 2rem; text-align: center; }'],
+JavaScript:['const sum = (a, b) => a + b;','items.filter(x => x.done).map(x => x.id);','btn.addEventListener("click", run);','for (let i = 0; i < 10; i++) { console.log(i); }','const res = await fetch(url); const data = await res.json();','if (!user) { throw new Error("Not found"); }'],
+Python:['def add(a, b): return a + b','squares = [x ** 2 for x in range(10)]','with open("data.txt") as f: lines = f.readlines()','for i, name in enumerate(names): print(i, name)','import numpy as np; arr = np.zeros((3, 3))','if __name__ == "__main__": main()'],
+Java:['public static void main(String[] args) { }','List<String> names = new ArrayList<>();','for (int i = 0; i < n; i++) { sum += arr[i]; }','System.out.println("Hello, World!");','private final Map<String, Integer> counts = new HashMap<>();','try { run(); } catch (Exception e) { e.printStackTrace(); }'],
+'C++':['#include <iostream>','std::vector<int> v = {1, 2, 3};','for (auto &x : v) { std::cout << x << std::endl; }','int main() { return 0; }','std::sort(v.begin(), v.end());','auto ptr = std::make_unique<Node>(5);'],
+SQL:['SELECT name, age FROM users WHERE age > 18;','INSERT INTO orders (id, total) VALUES (1, 49.99);','UPDATE users SET active = 0 WHERE id = 7;','SELECT COUNT(*) FROM sales GROUP BY region;','DELETE FROM logs WHERE created < "2024-01-01";','CREATE INDEX idx_email ON users (email);']};
+const Q=[["Well done is better than well said.","Benjamin Franklin"],["The only thing we have to fear is fear itself.","Franklin D. Roosevelt"],["We are what we repeatedly do. Excellence, then, is not an act, but a habit.","Will Durant"],["The journey of a thousand miles begins with a single step.","Lao Tzu"],["I think, therefore I am.","Rene Descartes"],["Knowledge itself is power.","Francis Bacon"],["Simplicity is the ultimate sophistication.","Attributed to Leonardo da Vinci"],["No man is an island, entire of itself; every man is a piece of the continent.","John Donne"]];
+const sh=a=>{a=[...a];for(let i=a.length;i>1;){const j=Math.random()*i--|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const pool=()=>set.cat==='Programming'?C[set.lang]:T[set.cat];
+function gen(n){let p=pool(),out=[],words=0,i=0;
+ if(set.mode==='adaptive'){const w=LS.g('tss_weak',{}),tg=45+set.level*30;p=p.map(s=>[Math.abs(s.length-tg)-[...s.toLowerCase()].reduce((a,c)=>a+(w[c]||0),0)*.6+Math.random()*20,s]).sort((a,b)=>a[0]-b[0]).map(x=>x[1])}else p=sh(p);
+ while(words<n){const s=p[i++%p.length];out.push(s);words+=s.split(' ').length;if(i%p.length===0&&set.mode!=='adaptive')p=sh(p)}
+ return out.join(' ').split(' ').slice(0,n).join(' ')}
+const SH={'!':'1','@':'2','#':'3','$':'4','%':'5','^':'6','&':'7','*':'8','(':'9',')':'0','_':'-','+':'=','{':'[','}':']',':':';','"':"'",'<':',','>':'.','?':'/'};
+const norm=c=>SH[c]||c.toLowerCase();
+let S={},tick,AC;
+const fmt=s=>{s=Math.max(0,Math.floor(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+const el=()=>S.run?((S.paused?S.pt:performance.now())-S.start-S.pa)/1000:0;
+function snd(bad){if(!set.sound)return;try{AC=AC||new AudioContext();const o=AC.createOscillator(),g=AC.createGain();o.type=bad?'sawtooth':'triangle';o.frequency.value=bad?140:520+Math.random()*60;g.gain.value=.04;o.connect(g);g.connect(AC.destination);o.start();g.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+.06);o.stop(AC.currentTime+.07)}catch(e){}}
+function init(same){clearInterval(tick);const old=same&&S.text,cap=same&&S.cap;
+ let text,c='';if(old)text=old,c=cap;else if(set.mode==='quote'){const q=pick(Q);text=q[0];c='— '+q[1]}else if(set.mode==='custom'&&set.custom)text=set.custom;else text=gen(set.mode==='time'?Math.ceil(set.val*3.5):set.mode==='words'?set.val:set.mode==='adaptive'?50:60);
+ S={text,cap:c,pos:0,st:[],ok:0,tot:0,err:0,ex:0,streak:0,best:0,start:0,pa:0,pt:0,run:false,paused:false,done:false,smp:[],kps:[],kerr:{},last:0,sp:[],ftop:-1,cur:0};
+ $('#res').hidden=true;$('#play').hidden=false;$('#pause').hidden=true;$('#cap').textContent=c;build();hud();cursor();$('#in').focus({preventScroll:true})}
+function build(){const w=$('#words');w.innerHTML='';w.style.transform='';const ws=S.text.split(' ');ws.forEach((x,i)=>{const e=document.createElement('span');e.className='w';for(const ch of x+(i<ws.length-1?' ':'')){const c=document.createElement('span');c.textContent=ch;e.appendChild(c);S.sp.push(c)}w.appendChild(e)});w.classList.toggle('foc',set.focus)}
+function cursor(){const sp=S.sp[Math.min(S.pos,S.sp.length-1)];S.sp[S.cur]&&S.sp[S.cur].classList.remove('cur');S.cur=Math.min(S.pos,S.sp.length-1);sp.classList.add('cur');
+ const lh=parseFloat(getComputedStyle($('#words')).lineHeight),top=sp.offsetTop,ln=Math.round(top/lh);$('#words').style.transform='translateY('+(-Math.max(0,ln-1)*lh)+'px)';
+ if(set.focus&&S.ftop!==top){S.ftop=top;S.sp.forEach(x=>x.classList.toggle('off',x.offsetTop!==top))}}
+function paint(a,b){for(let i=Math.max(0,a);i<=Math.min(b,S.sp.length-1);i++){const s=S.st[i];S.sp[i].classList.remove('c','x','m');if(s)S.sp[i].classList.add(s)}}
+function begin(){S.run=true;S.start=performance.now();tick=setInterval(()=>{if(S.paused)return;const e=el();while(S.last<Math.floor(e)){S.last++;sample(S.last)}hud();if(set.mode==='time'&&e>=set.val)finish()},100)}
+function press(c){if(S.done||S.paused)return;if(!S.run)begin();const k=Math.floor(el()),ex=S.text[S.pos],p0=S.pos;S.kps[k]=(S.kps[k]||0)+1;S.tot++;
+ if(c===ex){S.ok++;S.streak++;S.best=Math.max(S.best,S.streak);S.st[S.pos++]='c';snd()}
+ else if(ex===' '){S.ex++;S.err++;S.streak=0;S.kerr[' ']=(S.kerr[' ']||0)+1;snd(1);shake()}
+ else if(c===' '){const j=S.text.indexOf(' ',S.pos);if(j<0){S.tot--;return}for(let i=S.pos;i<j;i++){S.st[i]='m';const n=norm(S.text[i]);S.kerr[n]=(S.kerr[n]||0)+1}S.err++;S.streak=0;S.pos=j+1;S.st[j]='c';snd(1);shake()}
+ else{S.err++;S.streak=0;const n=norm(ex);S.kerr[n]=(S.kerr[n]||0)+1;S.st[S.pos++]='x';snd(1);shake()}
+ paint(p0,S.pos);if(S.pos>=S.text.length)return finish();cursor();hud()}
+function back(){if(S.done||S.paused||S.pos<1)return;S.pos--;S.st[S.pos]=null;paint(S.pos,S.pos+1);cursor()}
+const shake=()=>{const s=$('#stage');s.classList.remove('shake');void s.offsetWidth;s.classList.add('shake')};
+function stats(e){const m=Math.max(e,2)/60,cc=S.st.filter(x=>x==='c').length;return{cc,wpm:Math.min(350,cc/5/m),raw:Math.min(400,S.tot/5/m),cpm:Math.min(2000,cc/m),acc:S.tot?S.ok/S.tot*100:100}}
+function sample(t){const s=stats(t);S.smp.push({w:s.wpm,r:s.raw,a:s.acc,e:S.err})}
+const LB={wpm:'WPM',raw:'Raw WPM',cpm:'CPM',acc:'Accuracy',time:'Elapsed',err:'Mistakes',streak:'Streak',comp:'Complete',rem:'Remaining'};
+function hud(){const e=el(),s=stats(e),L=S.text.length,t=set.mode==='time',done=S.text.slice(0,S.pos).split(' ').length-1,tw=S.text.split(' ').length;
+ const v={wpm:Math.round(s.wpm),raw:Math.round(s.raw),cpm:Math.round(s.cpm),acc:Math.round(s.acc)+'%',time:fmt(e),err:S.err,streak:S.streak,comp:Math.round(S.pos/L*100)+'%',rem:t?fmt(Math.max(0,set.val-e)):(tw-done)+' words'};
+ const h=$('#hud');if(!h.children.length)h.innerHTML=Object.keys(LB).map(k=>`<div class="stat"><b id="v-${k}"></b><span>${LB[k]}</span></div>`).join('');
+ for(const k in v)$('#v-'+k).textContent=v[k];$('#pg').style.width=(t?Math.min(1,e/set.val):S.pos/L)*100+'%'}
+function pause(){if(!S.run||S.done)return;if(S.paused){S.pa+=performance.now()-S.pt;S.paused=false;$('#pause').hidden=true;$('#in').focus()}else{S.paused=true;S.pt=performance.now();$('#pause').hidden=false}}
+const mean=a=>a.reduce((x,y)=>x+y,0)/(a.length||1);
+function finish(){if(S.done)return;S.done=true;clearInterval(tick);const t=set.mode==='time',e=t?Math.min(el(),set.val):el(),s=stats(e);
+ if(S.smp.length<Math.ceil(e))sample(e);
+ const n=Math.max(1,Math.ceil(e)),rt=Array.from({length:n},(_,i)=>(S.kps[i]||0)*12),mu=mean(rt),cv=mu?Math.sqrt(mean(rt.map(x=>(x-mu)**2)))/mu:1;
+ const cons=Math.max(0,Math.min(100,100*(1-Math.tanh(cv+cv**3/3+cv**5/5))));
+ const cnt=k=>S.st.filter(x=>x===k).length;
+ const r={wpm:Math.round(s.wpm),raw:Math.round(s.raw),cpm:Math.round(s.cpm),acc:Math.round(s.acc),cons:Math.round(cons),cc:cnt('c'),xc:cnt('x'),mc:cnt('m'),ex:S.ex,err:S.err,tot:S.tot,best:S.best,dur:e,comp:t?100:Math.round(S.pos/S.text.length*100),smp:S.smp,rt,kerr:S.kerr};
+ const h=LS.g('tss_hist',[]),pbs=LS.g('tss_pb',{}),key=[set.mode,set.mode==='time'||set.mode==='words'?set.val:'',set.cat].join('|'),prev=pbs[key]||0;r.newpb=r.wpm>prev&&r.tot>0;r.pbv=Math.max(prev,r.wpm);
+ const prevAvg=mean(h.slice(-5).map(x=>x.w)),old=set.level;
+ if(r.tot>0){pbs[key]=r.pbv;LS.s('tss_pb',pbs);h.push({t:Date.now(),m:set.mode,v:set.val,c:set.cat,w:r.wpm,a:r.acc,k:r.cons,d:Math.round(e)});LS.s('tss_hist',h.slice(-200));
+  const w=LS.g('tss_weak',{});for(const k in w)w[k]*=.8;for(const k in S.kerr)w[k]=(w[k]||0)+S.kerr[k];LS.s('tss_weak',w);
+  if(set.mode==='adaptive'){if(r.acc>=95&&r.wpm>=prevAvg)set.level=Math.min(3,set.level+1);else if(r.acc<88)set.level=Math.max(0,set.level-1);save()}}
+ r.lv=[old,set.level];showRes(r,h);streakChip()}
+const erf=x=>{const t=1/(1+.3275911*Math.abs(x)),y=1-((((1.061405429*t-1.453152027)*t+1.421413741)*t-.284496736)*t+.254829592)*t*Math.exp(-x*x);return x>=0?y:-y};
+const rows=["1234567890-=","qwertyuiop[]","asdfghjkl;'","zxcvbnm,./"];
+function chart(ser,mx0=10,h=170){const W=560,P=28,mx=Math.max(mx0,...ser.flatMap(s=>s.d)),n=Math.max(2,...ser.map(s=>s.d.length)),X=i=>P+i*(W-P-8)/(n-1),Y=v=>h-16-v/mx*(h-30);
+ return`<svg viewBox="0 0 ${W} ${h}" role="img" aria-label="${ser[0].n} graph"><g class="grid">${[0,.5,1].map(f=>`<line x1="${P}" x2="${W-8}" y1="${Y(mx*f)}" y2="${Y(mx*f)}"/><text x="2" y="${Y(mx*f)+4}">${Math.round(mx*f)}</text>`).join('')}</g>${ser.map(s=>`<path d="${s.d.map((v,i)=>(i?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)).join('')}" style="stroke:${s.c}"/>`).join('')}</svg>`}
+const heat=k=>{const mx=Math.max(1,...Object.values(k));return rows.map(r=>`<div class="kr">${[...r].map(c=>`<i style="--a:${(k[c]||0)/mx}" title="${k[c]||0} mistakes">${c}</i>`).join('')}</div>`).join('')+`<div class="kr"><i class="sp" style="--a:${(k[' ']||0)/mx}">space</i></div>`};
+const BD=[[r=>r.wpm>=30,'🚀','30+ WPM'],[r=>r.wpm>=50,'⚡','50+ WPM'],[r=>r.wpm>=80,'🔥','80+ WPM'],[r=>r.wpm>=100,'👑','100+ WPM'],[r=>r.acc===100&&r.tot>=30,'🎯','Perfect accuracy'],[r=>r.cons>=80,'🎼','Steady rhythm'],[r=>r.best>=50,'🔗','50-key streak'],[r=>r.dur>=60,'🏃','Endurance 60s'],[(r,h)=>h.length>=10,'📈','10 sessions']];
+function dayStreak(h){const d=new Set(h.map(x=>new Date(x.t).toDateString()));let n=0,t=new Date();if(!d.has(t.toDateString()))t.setDate(t.getDate()-1);while(d.has(t.toDateString())){n++;t.setDate(t.getDate()-1)}return n}
+function streakChip(){const n=dayStreak(LS.g('tss_hist',[]));$('#ds').textContent=n?n+'-day streak':''}
+function showRes(r,h){
+ if(r.tot===0){init();return}
+ const top=Math.max(1,100-50*(1+erf((r.wpm-40)/16/Math.SQRT2))),weak=Object.entries(r.kerr).sort((a,b)=>b[1]-a[1]).slice(0,5).map(x=>x[0]==' '?'space':x[0]);
+ const g=[],b=[],t=[];
+ r.acc>=97?g.push('Very accurate at '+r.acc+'%'):r.acc<92&&(b.push('Accuracy slipped to '+r.acc+'%'),t.push('Ease off about 10% until accuracy is back above 95%. Speed follows control.'));
+ r.cons>=75?g.push('Even rhythm ('+r.cons+'% consistency)'):(b.push('Uneven pace ('+r.cons+'% consistency)'),t.push('Aim for a steady tempo rather than bursts. Look a few words ahead.'));
+ r.wpm>=60&&g.push('Strong speed at '+r.wpm+' WPM');r.raw-r.wpm>8&&(b.push('Mistakes cost you about '+(r.raw-r.wpm)+' WPM'),t.push('Raw speed is higher than net speed. Fixing errors is the fastest route to a better score.'));
+ r.ex>2&&(b.push(r.ex+' extra keystrokes at word ends'),t.push('Press space exactly when a word is finished; avoid double taps.'));r.mc>0&&b.push(r.mc+' characters skipped by jumping ahead');
+ weak.length&&t.push('Drill your trouble keys ('+weak.join(', ')+'). Adaptive mode will weight them in your next texts.');
+ g.length||g.push('You finished the session. Consistency builds from here.');b.length||b.push('No major weaknesses this round');t.length||t.push('Raise the difficulty: try a longer duration or another category.');
+ const a=h.filter(x=>x.t),bw=Math.max(...a.map(x=>x.w)),ba=Math.max(...a.map(x=>x.a)),f=BD.map(x=>({e:x[0](r,h),i:x[1],n:x[2]}));
+ const li=x=>'<ul class="sm">'+x.map(y=>'<li>'+y+'</li>').join('')+'</ul>';
+ $('#play').hidden=true;const R=$('#res');R.hidden=false;
+ R.innerHTML=`<div class="card"><div class="big"><div><b>${r.wpm}</b><span>WPM${r.newpb?' <i class="pb">New personal best</i>':''}</span></div><div><b>${r.acc}%</b><span>Accuracy</span></div><div><b>${r.cons}%</b><span>Consistency</span></div><div><b>Top ${top<1?'1':Math.round(top)}%</b><span>Estimated percentile</span></div></div></div>
+ <div class="card"><div class="row"><div><b>${r.raw}</b><span>Raw WPM</span></div><div><b>${r.cpm}</b><span>CPM</span></div><div><b>${r.comp}%</b><span>Completion</span></div><div><b>${fmt(r.dur)}</b><span>Duration</span></div><div><b>${r.err}</b><span>Mistakes</span></div><div><b>${r.best}</b><span>Best streak</span></div><div><b>${r.cc} / ${r.xc} / ${r.ex} / ${r.mc}</b><span>Correct / incorrect / extra / missed</span></div><div><b>${r.pbv}</b><span>Best WPM for this setup</span></div><div><b>${bw} / ${ba}%</b><span>All-time best WPM / accuracy</span></div></div></div>
+ <div class="two"><div class="card"><h2>WPM over time</h2>${chart([{n:'WPM',d:r.smp.map(x=>x.w),c:'var(--acc)'},{n:'Raw',d:r.smp.map(x=>x.r),c:'var(--dim)'}])}</div><div class="card"><h2>Accuracy over time</h2>${chart([{n:'Accuracy',d:r.smp.map(x=>x.a),c:'var(--ok)'}],100)}</div></div>
+ <div class="two"><div class="card"><h2>Typing rhythm (keys per second, as WPM)</h2>${chart([{n:'Rhythm',d:r.rt,c:'var(--acc)'}])}</div><div class="card"><h2>Error heatmap</h2>${heat(r.kerr)}</div></div>
+ <div class="card"><h2>Achievements</h2><div class="badges">${f.map(x=>`<span class="bd ${x.e?'':'lk'}">${x.i} ${x.n}</span>`).join('')}</div></div>
+ <div class="two"><div class="card"><h2>Strengths</h2>${li(g)}</div><div class="card"><h2>Weaknesses</h2>${li(b)}</div></div>
+ <div class="card"><h2>Suggestions</h2>${li(t)}${set.mode==='adaptive'?`<p>Adaptive difficulty: level ${r.lv[0]} to level ${r.lv[1]}.</p>`:''}</div>
+ <div class="act"><button class="tb on" id="rn">Next test (Tab)</button><button class="tb" id="rr">Retry same text</button><button class="tb" id="rh">History</button></div>`;
+ $('#rn').onclick=()=>init();$('#rr').onclick=()=>init(1);$('#rh').onclick=hist;$('#rn').focus()}
+function hist(){const h=LS.g('tss_hist',[]),d=$('#hist'),l=h.slice(-12).reverse();
+ d.innerHTML=`<h2>Session history</h2>${h.length?`<div class="row"><div><b>${h.length}</b><span>Sessions</span></div><div><b>${Math.max(...h.map(x=>x.w))}</b><span>Best WPM</span></div><div><b>${Math.round(mean(h.slice(-10).map(x=>x.w)))}</b><span>Average, last 10</span></div><div><b>${dayStreak(h)}</b><span>Day streak</span></div></div>
+ <h2 style="margin-top:12px">WPM trend</h2>${chart([{n:'WPM',d:h.slice(-30).map(x=>x.w),c:'var(--acc)'}])}<table><tr><th>When</th><th>Mode</th><th>WPM</th><th>Acc</th><th>Cons.</th></tr>${l.map(x=>`<tr><td>${new Date(x.t).toLocaleDateString()}</td><td>${x.m}${x.m==='time'||x.m==='words'?' '+x.v:''} · ${x.c}</td><td>${x.w}</td><td>${x.a}%</td><td>${x.k}%</td></tr>`).join('')}</table>`:'<p>No sessions yet. Finish a test and it will appear here.</p>'}
+ <div class="act"><button class="tb on" id="hc">Close</button>${h.length?'<button class="tb" id="hx">Clear history</button>':''}</div>`;
+ d.showModal();$('#hc').onclick=()=>d.close();const x=$('#hx');if(x)x.onclick=()=>{if(confirm('Delete all saved sessions and personal bests?')){LS.s('tss_hist',[]);LS.s('tss_pb',{});streakChip();d.close()}}}
+const grp=(label,opts,cur,fn)=>{const d=document.createElement('div');d.className='grp';d.setAttribute('role','group');d.setAttribute('aria-label',label);opts.forEach(o=>{const[v,t]=Array.isArray(o)?o:[o,o],b=document.createElement('button');b.textContent=t;b.className=v==cur?'on':'';b.setAttribute('aria-pressed',v==cur);b.onclick=()=>fn(v);d.appendChild(b)});return d};
+function go(){save();ctrl();init()}
+function ctrl(){const b=$('#bar');b.innerHTML='';
+ b.append(grp('Category',['General','Programming','Academic','Business','Medical','Legal','Creative'],set.cat,v=>{set.cat=v;go()}));
+ if(set.cat==='Programming')b.append(grp('Language',Object.keys(C),set.lang,v=>{set.lang=v;go()}));
+ b.append(grp('Mode',[['time','Time'],['words','Words'],['quote','Quote'],['custom','Custom'],['adaptive','Adaptive'],['zen','Zen']],set.mode,v=>{set.mode=v;if(v==='time'&&![15,30,60,120].includes(set.val))set.val=30;if(v==='words'&&![25,50,100,250].includes(set.val))set.val=50;if(v==='custom')return openCust();go()}));
+ if(set.mode==='time')b.append(grp('Duration',[15,30,60,120].map(x=>[x,x+'s']),set.val,v=>{set.val=+v;go()}));
+ if(set.mode==='words')b.append(grp('Word count',[25,50,100,250],set.val,v=>{set.val=+v;go()}))}
+function openCust(){$('#ct').value=set.custom;$('#cust').showModal()}
+$('#cgo').onclick=()=>{set.custom=$('#ct').value.replace(/\s+/g,' ').trim();$('#cust').close();go()};$('#cx').onclick=()=>{$('#cust').close();if(!set.custom){set.mode='time';set.val=30}go()};
+function ui(){const h=document.documentElement;h.dataset.theme=set.theme;h.dataset.acc=set.acc;h.style.setProperty('--fs',set.fs+'px');$('#th').value=set.theme;
+ $('#bf').classList.toggle('on',set.focus);$('#bf').setAttribute('aria-pressed',set.focus);$('#bs').classList.toggle('on',set.sound);$('#bs').setAttribute('aria-pressed',set.sound);save()}
+$('#dots').innerHTML=[['ultra','#3b4cf0'],['teal','#0d9488'],['amber','#c2670a'],['rose','#d6336c']].map(a=>`<button aria-label="Accent ${a[0]}" data-a="${a[0]}" style="background:${a[1]}"></button>`).join('');
+$('#dots').onclick=e=>{const a=e.target.dataset.a;if(a){set.acc=a;ui()}};
+$('#th').onchange=e=>{set.theme=e.target.value;ui()};
+$('#bf').onclick=tf;function tf(){set.focus=!set.focus;ui();S.ftop=-1;$('#words').classList.toggle('foc',set.focus);if(!set.focus)S.sp.forEach(x=>x.classList.remove('off'));cursor();$('#in').focus()}
+$('#bs').onclick=ts;function ts(){set.sound=!set.sound;ui();snd()}
+$('#fm').onclick=()=>{set.fs=Math.max(16,set.fs-2);ui();cursor()};$('#fp').onclick=()=>{set.fs=Math.min(44,set.fs+2);ui();cursor()};
+$('#bh').onclick=hist;$('#stage').onclick=()=>$('#in').focus();
+let un=false;const inp=$('#in');
+document.addEventListener('keydown',e=>{const dlg=document.querySelector('dialog[open]'),tag=e.target.tagName;
+ if(e.altKey){const k=e.key.toLowerCase();if(k==='f'){e.preventDefault();tf()}else if(k==='s'){e.preventDefault();ts()}else if(k==='h'){e.preventDefault();hist()}return}
+ if(dlg||tag==='TEXTAREA'||tag==='SELECT')return;
+ if(e.key==='Tab'){e.preventDefault();return init()}
+ if(e.key==='Escape'){e.preventDefault();return pause()}
+ if($('#play').hidden){if(e.key==='Enter'&&e.target.tagName!=='BUTTON'){e.preventDefault();init()}return}
+ if(e.ctrlKey||e.metaKey)return;
+ if(e.key==='Backspace'){e.preventDefault();return back()}
+ if(e.key==='Unidentified'||e.isComposing||e.keyCode===229){un=true;return}
+ if(e.key.length===1){e.preventDefault();press(e.key)}else if(e.key==='Enter'&&e.target===inp)e.preventDefault()});
+inp.addEventListener('input',e=>{if(un){if(e.inputType==='deleteContentBackward')back();else for(const c of e.data||'')press(c);un=false}inp.value=''});
+window.addEventListener('resize',()=>S.sp&&S.sp.length&&cursor());
+ui();ctrl();streakChip();init();
+</script>
+</body>
+</html>
