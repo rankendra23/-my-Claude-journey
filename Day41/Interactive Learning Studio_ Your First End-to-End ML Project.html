@@ -1,0 +1,142 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Interactive Learning Studio: Your First End-to-End ML Project</title>
+<style>
+:root{--bg:#f4f6f3;--p:#fff;--ink:#15262d;--mut:#5b6b72;--acc:#2b57e0;--warm:#d9851c;--ok:#1f8a5b;--bad:#c43d3d;--line:#d9dfdb;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1a1f;--p:#16252c;--ink:#e8efe9;--mut:#9db0b6;--acc:#7ea0ff;--warm:#f0b25c;--ok:#4cc38a;--bad:#ef7a7a;--line:#263b44}}
+:root[data-theme="dark"]{--bg:#0f1a1f;--p:#16252c;--ink:#e8efe9;--mut:#9db0b6;--acc:#7ea0ff;--warm:#f0b25c;--ok:#4cc38a;--bad:#ef7a7a;--line:#263b44}
+*{box-sizing:border-box}html{scroll-padding-top:70px;scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 system-ui,-apple-system,"Segoe UI",sans-serif}
+h1,h2,h3{font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;line-height:1.2;margin:.2em 0 .5em}
+h1{font-size:clamp(1.8rem,5vw,2.8rem)}h2{font-size:1.7rem}h3{font-size:1.15rem;margin-top:1.4em}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--p);border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center;padding:8px 16px;flex-wrap:wrap}
+header b{font-family:Georgia,serif;font-size:1.05rem;margin-right:auto}
+.bar{flex:1 1 160px;height:8px;background:var(--line);border-radius:9px;overflow:hidden;min-width:120px}.bar i{display:block;height:100%;width:0;background:var(--acc);transition:width .5s}
+button{font:inherit;cursor:pointer;color:inherit}.btn{background:var(--acc);color:#fff;border:0;border-radius:8px;padding:8px 14px}
+.ghost{background:none;border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+button:focus-visible,input:focus-visible{outline:3px solid var(--warm);outline-offset:2px}
+.wrap{max-width:1000px;margin:0 auto;padding:0 16px 60px}
+nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+nav button{border:1px solid var(--line);background:var(--p);border-radius:20px;padding:5px 13px;font-size:.9rem}nav button[disabled]{opacity:.45;cursor:not-allowed}nav .done{border-color:var(--ok);color:var(--ok)}
+section{background:var(--p);border:1px solid var(--line);border-radius:14px;padding:24px;margin:20px 0}
+.hero{border-left:6px solid var(--warm)}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.box{border:1px solid var(--line);border-radius:10px;padding:12px 14px}.box h4{margin:0 0 4px}
+.analogy{border-left:4px solid var(--warm);background:color-mix(in srgb,var(--warm) 10%,transparent);padding:10px 14px;border-radius:0 10px 10px 0}
+.mis{border-left:4px solid var(--bad);background:color-mix(in srgb,var(--bad) 8%,transparent);padding:10px 14px;border-radius:0 10px 10px 0}
+.key{border-left:4px solid var(--ok);background:color-mix(in srgb,var(--ok) 8%,transparent);padding:10px 14px;border-radius:0 10px 10px 0}
+pre{background:#0f1a1f;color:#dbe7e1;padding:12px;border-radius:10px;overflow-x:auto;font-size:.85rem}
+.lab{border:2px dashed var(--acc);border-radius:12px;padding:16px;margin:16px 0}
+.scroll{overflow-x:auto}table{border-collapse:collapse;width:100%}td,th{padding:6px 10px;border-bottom:1px solid var(--line);text-align:left}
+tr.pick{background:color-mix(in srgb,var(--warm) 25%,transparent)}tr.rw td{cursor:pointer}
+input[type=range]{width:100%;accent-color:var(--acc)}label{display:block;font-size:.9rem;color:var(--mut);margin-top:8px}
+.q{margin:16px 0}.opt{display:block;width:100%;text-align:left;margin:6px 0;padding:9px 12px;border:1px solid var(--line);background:var(--bg);border-radius:8px}
+.opt:hover:not([disabled]){border-color:var(--acc)}.opt.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 15%,transparent)}.opt.bad{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 15%,transparent)}
+.okt{color:var(--ok)}.badt{color:var(--bad)}.fb{font-size:.92rem;margin:4px 0}
+.sum{background:var(--bg);border-radius:10px;padding:12px 16px}svg{max-width:100%;height:auto}
+.badge{display:inline-block;border:1px solid var(--line);border-radius:20px;padding:3px 12px;margin:3px;opacity:.4}.badge.on{opacity:1;border-color:var(--warm);color:var(--warm)}
+.lock{text-align:center;color:var(--mut);padding:30px}
+.cp{font-size:.85rem;margin-left:8px}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+@media print{header,nav,.lab,.btn,.ghost,.noprint{display:none!important}section{break-inside:avoid;border:0}body{background:#fff;color:#000}}
+</style></head><body>
+<header><b>Interactive Learning Studio</b><span id="xp"></span><div class="bar" aria-label="Course progress"><i id="pg"></i></div><button class="ghost" onclick="tg()">Theme</button><button class="ghost" onclick="print()">Print notes</button></header>
+<div class="wrap"><nav id="nav"></nav><main id="main"></main></div>
+<script>
+const $=s=>document.querySelector(s);
+let S={u:1,sc:{},xp:0};try{S=JSON.parse(localStorage.getItem('ils'))||S}catch(e){}
+const sv=()=>{try{localStorage.setItem('ils',JSON.stringify(S))}catch(e){}};
+let A={};
+function tg(){const r=document.documentElement,d=getComputedStyle(r).getPropertyValue('--bg').trim()=='#0f1a1f';r.dataset.theme=d?'light':'dark'}
+const T=['','Frame the problem and read the data','Explore and clean the data','Train and evaluate a model','Meet the neural network'];
+const BADGE=['','Data Detective','Clean Sweeper','Model Trainer','Neuron Builder'];
+const M={
+1:{b:`<p>Every ML project starts with a <b>question</b>, not an algorithm. “Will this student pass?” is a question a model can answer if you have past examples. Each row is one example; the columns you use to predict are <b>features</b>, and the column you want to predict is the <b>target</b> (label). A numeric target (a score) is <b>regression</b>; a category target (pass/fail) is <b>classification</b>.</p>
+<svg viewBox="0 0 700 80" role="img" aria-label="Pipeline: question, data, clean, model, evaluate">${['Question','Data','Clean','Model','Evaluate'].map((t,i)=>`<rect x="${i*140+6}" y="18" width="116" height="42" rx="8" fill="none" stroke="var(--acc)" stroke-width="2"/><text x="${i*140+64}" y="44" text-anchor="middle" fill="var(--ink)" font-size="15">${t}</text>${i<4?`<path d="M${i*140+124} 39h16" stroke="var(--warm)" stroke-width="2.5"/>`:''}`).join('')}</svg>
+<div class="analogy"><b>Analogy:</b> an ML project is a restaurant. The question is the menu, the data is the ingredients, cleaning is prep, the model is the cooking, and evaluation is the customer tasting.</div>
+<h3>Example</h3><p>Our running project predicts whether a student <b>passes</b> from <b>hours studied</b> and <b>sleep hours</b>. Features: hours, sleep. Target: passed. Success means correct predictions on students the model has never seen.</p>
+<div class="mis"><b>Misconception:</b> “More data always means a better model.” Wrong or duplicated rows can make a model worse than less, cleaner data.</div>`,
+lab:`<div class="lab"><h3>Lab: spot the bad rows</h3><p>Click every row that would hurt a model. Then check.</p><div class="scroll"><table id="t1"></table></div><button class="btn" onclick="chk1()">Check my picks</button> <span id="r1"></span></div>`,
+k:'Start with a question and a success measure. Know your features and target. Check rows for gaps, typos and duplicates before modelling.',
+q:[{q:'Predicting “pass” or “fail” is which task?',o:['Regression','Classification','Clustering'],a:1,e:'Pass/fail is a category, so it is classification. Regression predicts numbers; clustering has no target.'},
+{q:'The column you want the model to predict is the…',o:['Feature','Target (label)','Index'],a:1,e:'The target is what you predict. Features are the inputs; the index only identifies rows.'},
+{q:'What should you do first in a project?',o:['Pick an algorithm','Define the question and how you will judge success','Deploy a demo'],a:1,e:'Without a question and success measure you cannot choose data or judge a model. Algorithms and deployment come later.'},
+{q:'Why is an accidentally duplicated row a problem?',o:['The model sees that example twice and overweights it','It deletes a column','It has no effect'],a:0,e:'Duplicates inflate one example’s influence and can leak into test data, flattering your score.'}]},
+2:{b:`<p>Real data is messy. <b>Exploratory data analysis</b> (EDA) means summarising and plotting before modelling. In pandas, <code>df.describe()</code> gives count, mean, spread and extremes; <code>df.isna().sum()</code> counts gaps. Then you <b>clean</b>: handle missing values (drop or <b>impute</b>, after asking why they are missing), remove duplicates, fix typos like 250 hours, and <b>scale</b> features so one column does not dominate.</p>
+<div class="analogy"><b>Analogy:</b> the mean is a seesaw, so one heavy kid far from the centre tips it. The median is the middle kid in a line, and does not care how far away the heavy one stands.</div>
+<pre>import pandas as pd
+df = pd.read_csv("students.csv")
+print(df.describe()); print(df.isna().sum())
+df = df.drop_duplicates()
+df["hours"] = df["hours"].fillna(df["hours"].median())
+df = df[df["hours"] &lt;= 16]   # a student cannot study 250 h/day</pre>
+<table><tr><th>Mean</th><th>Median</th></tr><tr><td>Sensitive to outliers</td><td>Robust to outliers</td></tr></table>
+<div class="mis"><b>Misconception:</b> “Delete every outlier.” Some are real and important (a genuine top student). Remove only values that are errors.</div>`,
+lab:`<div class="lab"><h3>Lab: the outlier seesaw</h3><p>Baseline hours: 2, 3, 3, 4, 5, 4. Add one extra student.</p><label>Extra student’s hours: <b id="ov"></b><input id="o2" type="range" min="0" max="100" value="5"></label><div id="r2"></div></div>`,
+k:'Explore before you model. Use median for skewed data. Ask why values are missing. Remove errors, not inconvenient truths. Scale features.',
+q:[{q:'Why prefer the median for skewed data?',o:['It is faster to compute','Extreme values barely move it','It is always larger'],a:1,e:'The median depends on position, not size, so outliers hardly shift it. Speed is irrelevant.'},
+{q:'Best first step with missing values?',o:['Delete the dataset','Understand why they are missing, then impute or drop deliberately','Fill with random numbers'],a:1,e:'The reason for missingness decides the fix. Random fills add noise; deleting everything wastes data.'},
+{q:'Which call summarises count, mean, std, min and max?',o:['df.describe()','df.head()','df.shape'],a:0,e:'describe() gives the summary statistics. head() shows rows; shape gives dimensions.'},
+{q:'Why scale features such as hours (0–10) and income (0–100000)?',o:['To make files smaller','So large-valued columns do not dominate learning','To remove the target'],a:1,e:'Models can overweight large numeric ranges. Scaling puts features on comparable footing.'}]},
+3:{b:`<p>A model is a function with adjustable knobs. <b>Linear regression</b> predicts <code>score = m × hours + b</code>. Training means finding the knobs with the smallest <b>loss</b>. We measure loss with <b>mean squared error (MSE)</b>: average of squared gaps between predictions and reality. Squaring punishes big misses.</p>
+<p>Always split your data: <b>train</b> to learn, <b>test</b> to judge. A model that memorises training data has <b>overfit</b>; one too simple has <b>underfit</b>.</p>
+<div class="analogy"><b>Analogy:</b> studying past exam papers (train) versus sitting the real exam (test). Memorising the answers scores well on the papers and badly on the exam.</div>
+<pre>from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+Xtr, Xte, ytr, yte = train_test_split(X, y, test_size=0.2, random_state=42)
+model = LinearRegression().fit(Xtr, ytr)
+print(model.score(Xte, yte))   # judge on unseen data</pre>
+<div class="mis"><b>Misconception:</b> “Fit the scaler on all data, then split.” That leaks test information into training (<b>data leakage</b>). Split first, then fit transforms on train only.</div>`,
+lab:`<div class="lab"><h3>Lab: be the optimiser</h3><p>Drag the sliders to fit the line to the dots. Lower MSE is better.</p><div id="pl3"></div><label>Slope m: <b id="mv"></b><input id="m3" type="range" min="0" max="12" step="0.1" value="1"></label><label>Intercept b: <b id="bv"></b><input id="b3" type="range" min="0" max="80" step="1" value="70"></label><p>MSE: <b id="e3"></b></p><button class="btn" onclick="best()">Let least squares solve it</button></div>`,
+k:'Training minimises a loss. Always evaluate on held-out data. Overfitting is great training scores with poor test scores. Split before transforming.',
+q:[{q:'Why hold out a test set?',o:['To estimate performance on unseen data','To make training faster','To add more features'],a:0,e:'The test set simulates new data. Faster training and extra features are unrelated.'},
+{q:'What does MSE measure?',o:['Average of squared gaps between predictions and truth','Number of rows','Share of correct labels'],a:0,e:'MSE squares each error and averages them. Share of correct labels is accuracy.'},
+{q:'Training score 99%, test score 60%. What is likely?',o:['Underfitting','Overfitting','Perfect model'],a:1,e:'A big train-test gap means the model memorised noise. Underfitting would score poorly on both.'},
+{q:'Which is data leakage?',o:['Fitting a scaler on the full dataset before splitting','Splitting first, then scaling with train statistics','Using random_state'],a:0,e:'Scaling before splitting lets test statistics influence training. Splitting first is the correct order.'}]},
+4:{b:`<p>A <b>neuron</b> does three things: multiply each input by a <b>weight</b>, add a <b>bias</b>, then pass the sum through an <b>activation</b> function. Sigmoid squashes any number into 0 to 1, which reads as a probability. Stack neurons in layers and you have a <b>neural network</b>.</p>
+<p>Training uses <b>gradient descent</b>: compute the loss, then use <b>backpropagation</b> to find how each weight contributed to the error, and nudge every weight to reduce it. Repeat thousands of times.</p>
+<div class="analogy"><b>Analogy:</b> a mixing desk. Each input is a channel, each weight is a volume slider, the bias shifts the master level, and the activation decides how the output is shaped.</div>
+<h3>Comparison</h3><table><tr><th></th><th>Linear model</th><th>Neural network</th></tr><tr><td>Best for</td><td>Small tabular data</td><td>Images, text, large data</td></tr><tr><td>Explainable</td><td>High</td><td>Lower</td></tr></table>
+<div class="mis"><b>Misconception:</b> “Neural networks always beat simpler models.” On small tabular data, a simple baseline often wins and is easier to explain.</div>`,
+lab:`<div class="lab"><h3>Lab: tune one neuron</h3><p>Chance of passing from study hours and sleep (each scaled 0–1).</p><div id="pl4"></div><label>Hours: <b id="x1v"></b><input id="x1" type="range" min="0" max="1" step="0.05" value="0.5"></label><label>Sleep: <b id="x2v"></b><input id="x2" type="range" min="0" max="1" step="0.05" value="0.5"></label><label>Weight w1: <b id="w1v"></b><input id="w1" type="range" min="-4" max="4" step="0.1" value="2"></label><label>Weight w2: <b id="w2v"></b><input id="w2" type="range" min="-4" max="4" step="0.1" value="1"></label><label>Bias: <b id="bbv"></b><input id="bb" type="range" min="-4" max="4" step="0.1" value="-1.5"></label></div>`,
+k:'Neuron = weighted sum + bias + activation. Networks learn by gradient descent with backpropagation. Start with a simple baseline.',
+q:[{q:'What does a neuron compute?',o:['Weighted sum of inputs plus bias, then an activation','Only the average of inputs','A random number'],a:0,e:'That is the neuron recipe. A plain average ignores weights and bias.'},
+{q:'Why use a non-linear activation?',o:['Without it, stacked layers collapse into one linear function','To shrink the dataset','To remove bias'],a:0,e:'Linear layers composed are still linear. Non-linearity lets networks learn curves.'},
+{q:'What does training a network do?',o:['Adjusts weights to reduce loss using gradients','Adds rows to the data','Changes the target'],a:0,e:'Training tunes weights by gradient descent. Data and target stay fixed.'},
+{q:'What does backpropagation compute?',o:['How much each weight contributed to the error','The test set','The learning rate'],a:0,e:'Backprop yields the gradient for every weight so gradient descent knows which way to nudge each one.'}]},
+5:{q:[{q:'A fraud model says “no fraud” every time and scores 99% accuracy (1% of cases are fraud). Best conclusion?',o:['It is excellent','Accuracy misleads on imbalanced data; check precision and recall','Add more neurons'],a:1,e:'It catches zero fraud. On imbalanced classes use precision, recall or F1.'},
+{q:'Test score is far below train score. What next?',o:['Tune hyperparameters on the test set','Simplify the model, add data or regularise','Delete the test set'],a:1,e:'Fight overfitting with simpler models, more data or regularisation. Tuning on test data leaks it.'},
+{q:'You have 200 rows of tabular data. Where do you start?',o:['A deep network','A simple baseline such as linear or tree model','No model'],a:1,e:'Small tabular data suits simple models, which also give you a benchmark to beat.'}]}};
+const Q=Object.fromEntries(Object.entries(M).map(([k,v])=>[k,v.q]));
+function qz(m){const qs=Q[m],a=A[m]||(A[m]={});let h='';
+qs.forEach((q,i)=>{const d=a[i]!==undefined;h+=`<div class="q"><p><b>${i+1}. ${q.q}</b></p>`+q.o.map((o,j)=>`<button class="opt ${d?(j==q.a?'ok':j==a[i]?'bad':''):''}" ${d?'disabled':''} onclick="pick(${m},${i},${j})">${o}</button>`).join('')+(d?`<p class="fb ${a[i]==q.a?'okt':'badt'}">${a[i]==q.a?'Correct. ':'Not quite. '}${q.e}</p>`:'')+'</div>'});
+if(Object.keys(a).length==qs.length){const s=qs.filter((q,i)=>a[i]==q.a).length;
+h+=`<div class="sum"><b>Score: ${s}/${qs.length}.</b> ${s==qs.length?'Flawless.':s>=qs.length-1?'Strong grasp. Review the missed item above.':'Worth another pass through the lesson.'} ${m<4?`<b>Module ${m+1} is unlocked.</b>`:m==4?'<b>Final challenge unlocked.</b>':'<b>Course complete.</b>'} ${s<qs.length?`<button class="ghost" onclick="rt(${m})">Retake</button>`:''}</div>`}
+return h}
+function pick(m,i,j){A[m][i]=j;if(j==Q[m][i].a)S.xp+=10;
+if(Object.keys(A[m]).length==Q[m].length){const s=Q[m].filter((q,x)=>A[m][x]==q.a).length;S.sc[m]=Math.max(S.sc[m]||0,s);S.u=Math.max(S.u,m+1);sv();
+$('#q'+m).innerHTML=qz(m);nv();const n=$('#s'+(m+1));if(n){n.outerHTML=sec(m+1);ini(m+1)}}else{sv();$('#q'+m).innerHTML=qz(m)}nv()}
+function rt(m){A[m]={};$('#q'+m).innerHTML=qz(m)}
+function sec(i){if(i>S.u)return`<section id="s${i}"><h2>${i==5?'Final challenge':'Module '+i+': '+T[i]}</h2><p class="lock">Locked. Finish the previous quiz to open this.</p></section>`;
+if(i==5)return`<section id="s5"><h2>Final practical challenge</h2><p>Three real-world scenarios. Choose the best action.</p><div id="q5">${qz(5)}</div>${S.u>5?fin():''}</section>`;
+const m=M[i];return`<section id="s${i}"><h2>Module ${i}: ${T[i]}</h2>${m.b}${m.lab}<div class="key"><b>Key takeaways:</b> ${m.k}</div><h3>Module ${i} quiz</h3><div id="q${i}">${qz(i)}</div></section>`}
+function fin(){const P=['Explain the ML pipeline from question to evaluation using a pass/fail student example, then quiz me.','Give me a messy CSV exercise and review my pandas cleaning code.','Walk me through backpropagation on a two-neuron network with numbers.','Suggest three beginner Kaggle datasets and a plan to build a baseline model.'];
+return`<h3>Cheat sheet</h3><div class="grid"><div class="box"><h4>Pipeline</h4>Question → data → clean → split → train → evaluate → iterate.</div><div class="box"><h4>Pandas</h4>describe(), isna().sum(), drop_duplicates(), fillna(), train_test_split</div><div class="box"><h4>Metrics</h4>MSE for regression. Accuracy, precision, recall, F1 for classification.</div><div class="box"><h4>Neuron</h4>out = activation(w·x + b)</div></div>
+<h3>Summary notes</h3><div class="sum">Frame the question, inspect and clean data, split before transforming, train a simple baseline, judge it on unseen data, then try a neural network only when the problem justifies it.</div>
+<h3>Continue learning</h3><div class="grid"><div class="box"><h4>Books</h4>Hands-On Machine Learning with Scikit-Learn and PyTorch (Géron); Python for Data Analysis (McKinney); An Introduction to Statistical Learning</div><div class="box"><h4>Documentation</h4>scikit-learn user guide; pandas docs; PyTorch tutorials</div><div class="box"><h4>Research papers</h4>“Learning representations by back-propagating errors” (Rumelhart, Hinton, Williams, 1986); “Adam: A Method for Stochastic Optimization” (Kingma, Ba)</div><div class="box"><h4>Communities</h4>Kaggle forums; r/learnmachinelearning; Hugging Face community; Stack Overflow</div><div class="box"><h4>Practice platforms</h4>Kaggle Learn and Titanic competition; Google Colab; Hugging Face</div><div class="box"><h4>Search keywords</h4>train test split, data leakage, bias variance tradeoff, gradient descent, sklearn pipeline</div></div>
+<h3 class="noprint">AI prompts for further learning</h3>${P.map(p=>`<p class="noprint">${p}<button class="ghost cp" onclick="navigator.clipboard&&navigator.clipboard.writeText(this.dataset.p)" data-p="${p}">Copy</button></p>`).join('')}`}
+function nv(){let h='';for(let i=1;i<=5;i++){const d=i<5?S.sc[i]!==undefined:S.sc[5]!==undefined;h+=`<button class="${d?'done':''}" ${i>S.u?'disabled':''} onclick="$('#s${i}').scrollIntoView()">${i==5?'Challenge':'Module '+i}${d?' ✓':''}</button>`}$('#nav').innerHTML=h;
+const dn=Object.keys(S.sc).length;$('#pg').style.width=dn*20+'%';$('#xp').textContent=S.xp+' XP'}
+function render(){$('#main').innerHTML=`<section class="hero"><h1>Your first end-to-end ML project</h1><p>Take a messy table of student data all the way to a trained model and a first neural network.</p>
+<div class="grid"><div class="box"><h4>Learning objectives</h4>Frame an ML question; explore and clean data; train and evaluate a model; understand a neuron.</div><div class="box"><h4>Time</h4>About 90 minutes.</div><div class="box"><h4>Prerequisites</h4>Basic Python helps. No maths beyond school algebra.</div><div class="box"><h4>Outcomes</h4>You can run a complete ML workflow and explain each step.</div></div>
+<h3>Rewards</h3><p>Earn 10 XP per correct answer and a badge per module.</p><div>${[1,2,3,4].map(i=>`<span class="badge ${S.sc[i]!==undefined?'on':''}">${BADGE[i]}</span>`).join('')}<span class="badge ${S.sc[5]!==undefined?'on':''}">ML Graduate</span></div></section>`+[1,2,3,4,5].map(sec).join('');nv();for(let i=1;i<=4;i++)ini(i)}
+function ini(i){if(i==1)i1();if(i==2)i2();if(i==3)i3();if(i==4)i4()}
+const R=[['Aarav',6,7,'Yes'],['Diya','',8,'Yes'],['Kabir',4,6,'No'],['Meera',250,7,'Yes'],['Kabir',4,6,'No'],['Rohan',3,5,'No'],['Sana',7,8,'Yes']];let P1=new Set;
+function i1(){const t=$('#t1');if(!t)return;t.innerHTML='<tr><th>Student</th><th>Hours</th><th>Sleep</th><th>Passed</th></tr>'+R.map((r,i)=>`<tr class="rw ${P1.has(i)?'pick':''}" onclick="P1.has(${i})?P1.delete(${i}):P1.add(${i});i1()">${r.map(c=>`<td>${c===''?'(missing)':c}</td>`).join('')}</tr>`).join('')}
+function chk1(){const bad=[1,3,4],ok=bad.filter(i=>P1.has(i)).length,wr=[...P1].filter(i=>!bad.includes(i)).length;$('#r1').textContent=ok==3&&!wr?'All three found: missing hours, a 250-hour typo and a duplicate Kabir.':`Found ${ok} of 3 with ${wr} wrong pick(s). Look for gaps, impossible values and repeats.`}
+function i2(){const o=$('#o2');if(!o)return;const f=()=>{const v=+o.value,d=[2,3,3,4,5,4,v],mean=d.reduce((a,b)=>a+b)/7,s=[...d].sort((a,b)=>a-b),med=s[3];$('#ov').textContent=v;$('#r2').innerHTML=`<p>Mean: <b>${mean.toFixed(2)}</b> <span style="display:inline-block;height:10px;width:${mean*3}px;background:var(--warm)"></span></p><p>Median: <b>${med}</b> <span style="display:inline-block;height:10px;width:${med*3}px;background:var(--acc)"></span></p><p>${v>20?'The mean jumped; the median barely moved.':'Push the slider up to add an outlier.'}</p>`};o.oninput=f;f()}
+const X=[1,2,3,4,5,6,7,8,9,10],Y=[42,45,55,53,66,71,70,82,85,93];
+function i3(){const m=$('#m3');if(!m)return;const b=$('#b3'),f=()=>{const a=+m.value,c=+b.value,e=X.reduce((s,x,i)=>s+(a*x+c-Y[i])**2,0)/10,px=x=>40+x*34,py=y=>230-(y-30)*2.5;$('#mv').textContent=a;$('#bv').textContent=c;$('#e3').textContent=e.toFixed(1)+(e<20?' (great fit)':'');
+$('#pl3').innerHTML=`<svg viewBox="0 0 400 250" role="img" aria-label="Scatter plot with adjustable line"><path d="M40 20V230H390" stroke="var(--mut)" fill="none"/><line x1="${px(0)}" y1="${py(c)}" x2="${px(11)}" y2="${py(a*11+c)}" stroke="var(--acc)" stroke-width="3"/>${X.map((x,i)=>`<circle cx="${px(x)}" cy="${py(Y[i])}" r="5" fill="var(--warm)"/>`).join('')}<text x="200" y="248" text-anchor="middle" fill="var(--mut)" font-size="11">hours studied</text></svg>`};m.oninput=b.oninput=f;f();window.best=()=>{const mx=5.5,my=Y.reduce((a,b)=>a+b)/10,a=X.reduce((s,x,i)=>s+(x-mx)*(Y[i]-my),0)/X.reduce((s,x)=>s+(x-mx)**2,0);m.value=a.toFixed(1);b.value=Math.round(my-a*mx);f()}}
+function i4(){const g=id=>$('#'+id);if(!g('x1'))return;const f=()=>{const x1=+g('x1').value,x2=+g('x2').value,w1=+g('w1').value,w2=+g('w2').value,b=+g('bb').value,z=w1*x1+w2*x2+b,o=1/(1+Math.exp(-z));
+[['x1',x1],['x2',x2],['w1',w1],['w2',w2],['bb',b]].forEach(([k,v])=>g(k+'v').textContent=v);
+g('pl4').innerHTML=`<svg viewBox="0 0 420 150" role="img" aria-label="Single neuron diagram"><line x1="60" y1="35" x2="250" y2="75" stroke="var(--acc)" stroke-width="${1+Math.abs(w1)*1.5}"/><line x1="60" y1="115" x2="250" y2="75" stroke="var(--acc)" stroke-width="${1+Math.abs(w2)*1.5}"/><circle cx="50" cy="35" r="22" fill="none" stroke="var(--ink)"/><circle cx="50" cy="115" r="22" fill="none" stroke="var(--ink)"/><circle cx="270" cy="75" r="30" fill="var(--warm)" fill-opacity="${o}" stroke="var(--warm)" stroke-width="2"/><text x="50" y="40" text-anchor="middle" fill="var(--ink)">${x1}</text><text x="50" y="120" text-anchor="middle" fill="var(--ink)">${x2}</text><text x="115" y="48" fill="var(--ink)" font-size="12">w1=${w1}</text><text x="115" y="112" fill="var(--ink)" font-size="12">w2=${w2}</text><text x="320" y="70" fill="var(--ink)">Pass chance</text><text x="320" y="92" fill="var(--ink)" font-size="20">${Math.round(o*100)}%</text></svg><p>z = ${w1}×${x1} + ${w2}×${x2} + ${b} = <b>${z.toFixed(2)}</b>; sigmoid(z) = <b>${o.toFixed(2)}</b></p>`};['x1','x2','w1','w2','bb'].forEach(k=>g(k).oninput=f);f()}
+render();
+</script></body></html>
