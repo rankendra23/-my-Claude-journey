@@ -1,0 +1,92 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Personal Financial Command Center</title><meta name="color-scheme" content="light dark"><style>
+:root{--bg:#f2f4ef;--sf:#fff;--ink:#14213d;--mu:#5d6779;--ac:#1f7a5c;--wa:#c8453b;--go:#d9a441;--ln:#dde2d8;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1523;--sf:#172033;--ink:#e8ecf4;--mu:#9aa6bb;--ac:#4cc29a;--wa:#ef7a70;--go:#e8b955;--ln:#26324a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e1523;--sf:#172033;--ink:#e8ecf4;--mu:#9aa6bb;--ac:#4cc29a;--wa:#ef7a70;--go:#e8b955;--ln:#26324a;color-scheme:dark}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+h1,h2,h3,.big{font-family:"Iowan Old Style",Georgia,"Times New Roman",serif;font-weight:700;margin:0}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--ln)}
+header h1{font-size:1.35rem}header small{color:var(--mu);display:block;font:400 .85rem system-ui}
+nav{display:flex;gap:6px;overflow-x:auto;padding:10px 20px;border-bottom:1px solid var(--ln);background:var(--sf)}
+nav button,.btn{font:inherit;border:1px solid var(--ln);background:transparent;color:var(--ink);padding:8px 14px;border-radius:999px;cursor:pointer;white-space:nowrap}
+nav button.on,.btn.pri{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--go);outline-offset:2px}
+main{max-width:1040px;margin:0 auto;padding:20px}
+.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.card{background:var(--sf);border:1px solid var(--ln);border-radius:14px;padding:18px}
+.card h3{font-size:1.05rem;margin-bottom:10px}
+.hero{display:flex;flex-wrap:wrap;gap:24px;align-items:center;margin-bottom:16px;padding:24px}
+.hero p{margin:4px 0;color:var(--mu);max-width:46ch}
+.big{font-size:2rem}.mu{color:var(--mu)}.ok{color:var(--ac)}.bad{color:var(--wa)}
+.bar{height:10px;border-radius:6px;background:var(--ln);overflow:hidden}.bar i{display:block;height:100%;background:var(--ac);transition:width .6s}
+.bar i.over{background:var(--wa)}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--ln)}.row:last-child{border:0}
+input,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--ln);border-radius:8px;padding:8px 10px;max-width:100%}
+input[type=range]{width:100%;padding:0}input[type=checkbox]{width:18px;height:18px}
+.f{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}.f>*{flex:1 1 130px}
+ul{padding-left:18px;margin:0}li{margin:6px 0}
+.leg{display:flex;flex-wrap:wrap;gap:8px 14px;font-size:.85rem;margin-top:8px}.leg b{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}
+.ring{transform:rotate(-90deg)}.ring circle{transition:stroke-dashoffset 1s}
+.ins{border-left:4px solid var(--go);padding:4px 12px;margin:8px 0}.ins.g{border-color:var(--ac)}.ins.r{border-color:var(--wa)}
+.view{animation:in .35s}@keyframes in{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.tip{font-size:.85rem;color:var(--mu);margin-top:20px}
+@media print{header .btn,nav{display:none}body{background:#fff;color:#000}.card{break-inside:avoid;border-color:#999}}
+</style></head><body>
+<header><div><h1>Personal Financial Command Center</h1><small id="sub"></small></div><div class="f" style="margin:0"><button class="btn" id="th" aria-label="Toggle dark mode">Dark mode</button><button class="btn" onclick="print()">Print report</button></div></header>
+<nav id="nav" aria-label="Sections"></nav><main id="v" class="view"></main>
+<script>
+const $=s=>document.querySelector(s),C=['Rent','Food','Shopping','Transport','Subscriptions','Study','Other'],K=['#1f7a5c','#d9a441','#c8453b','#3d6fb6','#8a5fb0','#2a9d9d','#8a93a3'];
+const ym=new Date().toISOString().slice(0,7),td=new Date().toISOString().slice(0,10),f=n=>'₹'+Math.round(n).toLocaleString('en-IN'),cl=(x,a,b)=>Math.max(a,Math.min(b,x));
+let S=null;try{S=JSON.parse(localStorage.getItem('fcc1'))}catch(e){}
+if(!S)S={income:10000,theme:'',tab:'Overview',chk:{},
+entries:[['02','Rent',4000,'Room rent'],['04','Food',900,'Mess & groceries'],['08','Food',650,'Food delivery'],['10','Shopping',1400,'Online order'],['12','Subscriptions',399,'OTT plan'],['14','Transport',500,'Metro & auto'],['16','Study',350,'Books']].map(a=>({d:ym+'-'+a[0],c:a[1],a:a[2],n:a[3]})),
+budget:{Rent:4000,Food:2000,Shopping:600,Transport:600,Subscriptions:300,Study:500,Other:500},goals:[{n:'Emergency fund',t:15000,s:500,m:1000}]};
+const save=()=>{try{localStorage.setItem('fcc1',JSON.stringify(S))}catch(e){}};
+const tabs=['Overview','Transactions','Budget','Goals','What-if','Learn'];
+function theme(){const r=document.documentElement;S.theme?r.dataset.theme=S.theme:r.removeAttribute('data-theme')}
+$('#th').onclick=()=>{const d=S.theme?S.theme=='dark':matchMedia('(prefers-color-scheme:dark)').matches;S.theme=d?'light':'dark';theme();save()};
+function calc(){const sp={};C.forEach(c=>sp[c]=0);S.entries.filter(e=>e.d.startsWith(ym)).forEach(e=>sp[e.c]+=e.a);
+const T=C.reduce((a,c)=>a+sp[c],0),sv=S.income-T,rate=S.income?sv/S.income:0,rr=sp.Rent/(S.income||1),im=(sp.Shopping+sp.Subscriptions)/(S.income||1),okc=C.filter(c=>sp[c]<=S.budget[c]).length;
+const sc=Math.round(cl(rate/.2,0,1)*40+(rr<=.35?20:cl(1-(rr-.35)/.3,0,1)*20)+(im<=.15?20:cl(1-(im-.15)/.2,0,1)*20)+okc/C.length*20);
+return{sp,T,sv,rate,rr,sc}}
+function donut(sp,T){let o=0;const R=40,P=2*Math.PI*R;let s='';C.forEach((c,i)=>{const l=T?sp[c]/T*P:0;s+=`<circle cx="60" cy="60" r="${R}" fill="none" stroke="${K[i]}" stroke-width="18" stroke-dasharray="${l} ${P-l}" stroke-dashoffset="${-o}"/>`;o+=l});
+return`<svg viewBox="0 0 120 120" width="170" role="img" aria-label="Spending by category" style="transform:rotate(-90deg)">${s}</svg><div class="leg">${C.map((c,i)=>`<span><b style="background:${K[i]}"></b>${c} ${f(sp[c])}</span>`).join('')}</div>`}
+function pbar(v,m){const p=m?v/m*100:0;return`<div class="bar" role="progressbar" aria-valuenow="${Math.round(p)}" aria-valuemin="0" aria-valuemax="100"><i class="${p>100?'over':''}" style="width:${cl(p,0,100)}%"></i></div>`}
+function insights(d){const a=[],g=S.goals[0],top=C.slice().sort((x,y)=>d.sp[y]-d.sp[x])[0];
+a.push(d.rate>=.2?['g',`You’re saving ${Math.round(d.rate*100)}% of your money this month. That meets the 20% target.`]:d.rate>=0?['','You’re saving '+Math.round(d.rate*100)+'% this month. Aim for 20% by moving savings out first, then spending what’s left.']:['r',`You’re overspending by ${f(-d.sv)} this month. Pause non-essential purchases until it’s back to zero.`]);
+if(d.sp.Shopping>S.budget.Shopping)a.push(['r',`Shopping is ${f(d.sp.Shopping-S.budget.Shopping)} over its limit. Put items in your cart and wait 24 hours before paying.`]);
+if(d.rr>.4)a.push(['r',`Rent takes ${Math.round(d.rr*100)}% of your money. Try to keep it near 35% or share a flat.`]);
+a.push(['',`${top} is your biggest category at ${f(d.sp[top])}. Check it first when you want to cut costs.`]);
+if(g&&d.sv>0&&g.s<g.t)a.push(['g',`Saving ${f(Math.min(d.sv,g.m))} a month, “${g.n}” is ready in about ${Math.ceil((g.t-g.s)/Math.min(d.sv,g.m))} months.`]);
+a.push(['','UPI makes spending feel painless. Open your payment app’s history every Sunday and review it.']);return a.map(x=>`<div class="ins ${x[0]}">${x[1]}</div>`).join('')}
+const views={
+Overview(){const d=calc(),P=2*Math.PI*52,lab=d.sc>=75?'Strong':d.sc>=50?'Steady':'Needs attention';
+return`<section class="card hero"><svg class="ring" width="140" viewBox="0 0 120 120" role="img" aria-label="Financial health score ${d.sc} of 100"><circle cx="60" cy="60" r="52" fill="none" stroke="var(--ln)" stroke-width="10"/><circle cx="60" cy="60" r="52" fill="none" stroke="${d.sc>=75?'var(--ac)':d.sc>=50?'var(--go)':'var(--wa)'}" stroke-width="10" stroke-linecap="round" stroke-dasharray="${P}" stroke-dashoffset="${P*(1-d.sc/100)}"/></svg>
+<div><h2 class="big">${d.sc}/100 · ${lab}</h2><p>Your health score blends savings rate, rent share, impulse spending and how many budgets you kept.</p><p>This month you kept <b>${f(d.sv)}</b> of ${f(S.income)}.</p></div></section>
+<div class="grid"><div class="card"><h3>Money in</h3><div class="big">${f(S.income)}</div><div class="mu">Scholarship or stipend</div></div><div class="card"><h3>Money out</h3><div class="big ${d.sv<0?'bad':''}">${f(d.T)}</div><div class="mu">${Math.round(d.T/(S.income||1)*100)}% of what you have</div></div><div class="card"><h3>Saved</h3><div class="big ${d.sv<0?'bad':'ok'}">${f(d.sv)}</div><div class="mu">${Math.round(d.rate*100)}% savings rate</div></div></div>
+<div class="grid" style="margin-top:16px"><div class="card"><h3>Where it went</h3>${donut(d.sp,d.T)}</div><div class="card"><h3>Budget progress</h3>${C.map(c=>`<div style="margin:8px 0"><div class="row" style="border:0;padding:0"><span>${c}</span><span class="${d.sp[c]>S.budget[c]?'bad':'mu'}">${f(d.sp[c])} / ${f(S.budget[c])}</span></div>${pbar(d.sp[c],S.budget[c])}</div>`).join('')}</div></div>
+<section class="card" style="margin-top:16px"><h3>Recommendations</h3>${insights(d)}</section>`},
+Transactions(){const l=S.entries.map((e,i)=>({e,i})).sort((a,b)=>b.e.d.localeCompare(a.e.d));
+return`<section class="card"><h3>Monthly money</h3><div class="f"><label>Stipend this month (₹)<input type="number" min="0" value="${S.income}" onchange="S.income=+this.value||0;save();go()"></label></div><h3>Add spending</h3>
+<div class="f"><input id="ta" type="number" min="1" placeholder="Amount (₹)" aria-label="Amount"><select id="tc" aria-label="Category">${C.map(c=>`<option>${c}</option>`).join('')}</select><input id="tn" placeholder="Note" aria-label="Note"><input id="td" type="date" value="${td}" aria-label="Date"><button class="btn pri" onclick="add()">Add spending</button></div>
+${l.map(({e,i})=>`<div class="row"><span>${e.d.slice(5)} · ${e.c}<span class="mu"> ${e.n||''}</span></span><span>${f(e.a)} <button class="btn" aria-label="Delete" onclick="S.entries.splice(${i},1);save();go()">Delete</button></span></div>`).join('')||'<p class="mu">Nothing yet. Add your first spending above.</p>'}</section>`},
+Budget(){const d=calc();return`<section class="card"><h3>Monthly limits</h3><p class="mu">Suggested split for you: needs 50%, wants 30%, savings 20%. Edit any limit.</p>${C.map(c=>`<div style="margin:12px 0"><div class="row" style="border:0;padding:0"><label for="b${c}">${c}</label><input id="b${c}" type="number" min="0" value="${S.budget[c]}" style="width:110px" onchange="S.budget['${c}']=+this.value||0;save();go()"></div>${pbar(d.sp[c],S.budget[c])}</div>`).join('')}<p>Planned spending: <b>${f(C.reduce((a,c)=>a+S.budget[c],0))}</b> · Left to save: <b class="ok">${f(S.income-C.reduce((a,c)=>a+S.budget[c],0))}</b></p></section>`},
+Goals(){return`<section class="card"><h3>Add a goal</h3><div class="f"><input id="gn" placeholder="Goal name"><input id="gt" type="number" min="1" placeholder="Target (₹)"><input id="gm" type="number" min="1" placeholder="Monthly saving (₹)"><button class="btn pri" onclick="addG()">Add goal</button></div></section>
+<div class="grid" style="margin-top:16px">${S.goals.map((g,i)=>`<div class="card"><h3>${g.n.replace(/</g,'&lt;')}</h3>${pbar(g.s,g.t)}<p>${f(g.s)} of ${f(g.t)} · ${g.s>=g.t?'<b class="ok">Reached</b>':'about '+Math.ceil((g.t-g.s)/g.m)+' months left'}</p><div class="f"><input type="number" min="1" id="c${i}" placeholder="Add ₹" aria-label="Amount to add"><button class="btn" onclick="S.goals[${i}].s+=+$('#c${i}').value||0;save();go()">Add savings</button><button class="btn" onclick="S.goals.splice(${i},1);save();go()">Remove</button></div></div>`).join('')||'<p class="mu">No goals yet. A first goal of one month’s rent is a good start.</p>'}</div>`},
+'What-if'(){const d=calc();return`<div class="grid"><section class="card"><h3>Impulse-buy simulator</h3><p class="mu">Shopping now: ${f(d.sp.Shopping)} a month.</p><label>Cut shopping by <b id="o1">30</b>%<input type="range" id="r1" min="0" max="100" value="30" oninput="wi()"></label><label>Also save extra ₹<b id="o2">500</b> a month<input type="range" id="r2" min="0" max="3000" step="100" value="500" oninput="wi()"></label><p id="w1"></p></section>
+<section class="card"><h3>SIP growth</h3><label>Monthly ₹<b id="o3">500</b><input type="range" id="r3" min="100" max="5000" step="100" value="500" oninput="wi()"></label><label>Years <b id="o4">5</b><input type="range" id="r4" min="1" max="10" value="5" oninput="wi()"></label><p id="w2"></p><p class="mu">Assumes 12% a year for illustration only. Market returns are not guaranteed.</p></section></div>`},
+Learn(){const ck=['Track every UPI payment for 30 days','Set a limit for each category','Move savings first on stipend day','Build 1 month of expenses as emergency cash','Cancel subscriptions you didn’t use this month','Wait 24 hours before any non-essential purchase','Learn what a SIP and an index fund are'],
+pr=['Review my spending list and find three costs I can cut without feeling it.','Explain SIPs and index funds to a student with ₹500 a month.','Make a 30-day plan to stop impulse buying online.','Help me negotiate rent or find a flatmate to share costs.','Quiz me on budgeting basics, one question at a time.'];
+return`<div class="grid"><section class="card"><h3>Planning checklist</h3>${ck.map((t,i)=>`<label class="row"><span>${t}</span><input type="checkbox" ${S.chk[i]?'checked':''} onchange="S.chk[${i}]=this.checked;save()"></label>`).join('')}</section>
+<section class="card"><h3>Tips for a student budget</h3><ul><li>Pay yourself first: save before you spend.</li><li>Keep wants to 30% and review them weekly.</li><li>Remove saved cards from shopping apps.</li><li>Use student discounts and free tiers for tools.</li><li>Start a SIP of any size. The habit matters more than the amount.</li></ul></section></div>
+<section class="card" style="margin-top:16px"><h3>Prompts to improve your money skills</h3>${pr.map(p=>`<div class="row"><span>${p}</span><button class="btn" onclick="navigator.clipboard&&navigator.clipboard.writeText(this.dataset.p);this.textContent='Copied'" data-p="${p}">Copy prompt</button></div>`).join('')}</section>
+<section class="card" style="margin-top:16px"><h3>Useful resources</h3><ul><li>RBI Financial Awareness: rbi.org.in</li><li>Zerodha Varsity: zerodha.com/varsity</li><li>SEBI Investor Education: investor.sebi.gov.in</li><li>AMFI mutual fund basics: amfiindia.com</li></ul></section>`}};
+function wi(){const v=i=>+$('#r'+i).value;[1,2,3,4].forEach(i=>$('#o'+i).textContent=v(i));const d=calc(),y=d.sp.Shopping*v(1)/100*12+v(2)*12;
+$('#w1').innerHTML=`In a year you free up <b class="ok">${f(y)}</b>. That’s ${f(y/12)} a month toward your goals.`;
+const i=.01,n=v(4)*12,fv=v(3)*((Math.pow(1+i,n)-1)/i)*(1+i);$('#w2').innerHTML=`You put in ${f(v(3)*n)} and it could grow to about <b class="ok">${f(fv)}</b>.`}
+function add(){const a=+$('#ta').value;if(!(a>0)){$('#ta').focus();return}S.entries.push({d:$('#td').value||td,c:$('#tc').value,a,n:$('#tn').value.replace(/[<>]/g,'')});save();go()}
+function addG(){const n=$('#gn').value.replace(/[<>]/g,'').trim(),t=+$('#gt').value,m=+$('#gm').value;if(!n||!(t>0)||!(m>0))return;S.goals.push({n,t,s:0,m});save();go()}
+function go(t){if(t)S.tab=t;save();$('#nav').innerHTML=tabs.map(x=>`<button class="${x==S.tab?'on':''}" onclick="go('${x}')">${x}</button>`).join('');const v=$('#v');v.innerHTML=views[S.tab]();v.classList.remove('view');void v.offsetWidth;v.classList.add('view');if(S.tab=='What-if')wi();$('#sub').textContent='Student edition · '+new Date().toLocaleDateString('en-IN',{month:'long',year:'numeric'})}
+theme();go();
+</script></body></html>
