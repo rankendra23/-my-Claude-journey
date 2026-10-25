@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AI Workflow Architect</title>
+<style>
+:root{box-sizing:border-box;--bg:#f5f6fb;--card:#fff;--tx:#151a2d;--mu:#5c6480;--ac:#5b4bff;--ac2:#00a884;--bd:#e2e5f0;--wr:#d9534f;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){color-scheme:dark;--bg:#0e111e;--card:#171b2e;--tx:#e8eaf6;--mu:#98a0c0;--ac:#8b7dff;--ac2:#2ee6b8;--bd:#2a3050;--wr:#ff7b72}}
+:root[data-theme=dark]{color-scheme:dark;--bg:#0e111e;--card:#171b2e;--tx:#e8eaf6;--mu:#98a0c0;--ac:#8b7dff;--ac2:#2ee6b8;--bd:#2a3050;--wr:#ff7b72}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 18px;background:var(--card);border-bottom:1px solid var(--bd)}
+header h1{font-size:18px;margin:0;background:linear-gradient(90deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.pg{flex:1;min-width:140px;height:8px;background:var(--bd);border-radius:9px;overflow:hidden}.pg i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--ac),var(--ac2));transition:width .5s}
+button{font:inherit;cursor:pointer;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:9px;padding:6px 11px;transition:.2s}button:hover{border-color:var(--ac);transform:translateY(-1px)}
+.wrap{display:grid;grid-template-columns:230px 1fr;gap:18px;max-width:1150px;margin:0 auto;padding:18px}
+nav{position:sticky;top:64px;align-self:start;display:flex;flex-direction:column;gap:6px}nav button{text-align:left}nav button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:20px;margin-bottom:16px;animation:in .35s ease}
+@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+h2{margin:0 0 4px;font-size:22px}h3{margin:18px 0 6px;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--ac)}
+.mu{color:var(--mu)}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+.tool{border:1px solid var(--bd);border-radius:12px;padding:10px 12px}.tool p{margin:4px 0 0;color:var(--mu);font-size:13px}
+.task{display:block;padding:4px 0}pre{white-space:pre-wrap;background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:12px;font:13px/1.5 ui-monospace,Menlo,monospace}
+ul{margin:4px 0;padding-left:20px}.bad li::marker{color:var(--wr)}.chip{display:inline-block;padding:3px 10px;margin:3px;border:1px solid var(--bd);border-radius:20px;font-size:13px}
+textarea{width:100%;min-height:80px;background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:10px;padding:10px;font:inherit}
+table{width:100%;border-collapse:collapse;font-size:13px}td,th{border-bottom:1px solid var(--bd);padding:7px;text-align:left}
+.svgw{overflow-x:auto}svg text{fill:var(--tx);font:600 12px system-ui}svg .n{cursor:pointer}svg .n rect{fill:var(--card);stroke:var(--ac);stroke-width:2;transition:.2s}svg .n:hover rect{fill:var(--bd)}svg .d rect{stroke:var(--ac2)}svg path{stroke:var(--mu);fill:none;stroke-width:2}
+.res{padding:12px;border-radius:10px;background:var(--bg);border-left:4px solid var(--ac2);margin-top:8px}
+@media (max-width:800px){.wrap{grid-template-columns:1fr;padding:12px}nav{position:static;flex-direction:row;overflow-x:auto}nav button{white-space:nowrap}}
+@media print{header,nav,button,textarea{display:none!important}.wrap{display:block}.card{break-inside:avoid;animation:none}body{background:#fff;color:#000}}
+</style></head><body>
+<header><h1>AI Workflow Architect</h1><div class="pg"><i id="pb"></i></div><span id="pt" class="mu"></span><button id="th">Theme</button><button id="pr">Print guide</button></header>
+<div class="wrap"><nav id="nav"></nav><main id="main"></main></div>
+<script>
+const S=[
+{t:"Problem Framing",e:"🎯",time:"2–4 days",o:"Turn a vague idea into a measurable ML problem with a clear success metric, constraints and a simple baseline.",
+tasks:["Write a one-paragraph problem statement","Choose target variable and success metric","Check that data can realistically be obtained","Define a non-ML baseline to beat"],
+tools:[["Claude","Pressure-tests framing, metrics and risks through dialogue."],["Notion","Keeps the project brief, decisions and tasks in one place."]],alt:"ChatGPT, Gemini, Miro, Obsidian",
+prompt:"Act as a senior ML lead. My idea: [idea]. Help me define the target, a primary metric, a baseline, data needs and 3 biggest risks. Ask me questions first.",
+bp:["Pick one primary metric tied to real impact","Write down what failure looks like"],mk:["Starting with a model instead of a question","Optimising accuracy on imbalanced data"],out:"Project brief, metric definition, baseline plan",tip:"Reuse a brief template so every project starts the same way."},
+{t:"Data Collection",e:"📥",time:"3–7 days",o:"Gather raw data legally and reproducibly, and document where each piece came from.",
+tasks:["List candidate sources (datasets, APIs, scraping, SQL)","Download or ingest raw data into a raw/ folder","Write a data dictionary","Version data with DVC or a checksum log"],
+tools:[["Kaggle / Hugging Face Datasets","Fast access to ready, documented datasets for learning projects."],["Claude / Copilot","Writes API clients and loaders, and explains unfamiliar schemas."],["DVC","Versions data like code so experiments are reproducible."]],alt:"Google Dataset Search, Scrapy, Airbyte",
+prompt:"Write a Python script using requests and pandas that pulls [source], handles pagination and rate limits, and saves raw JSON and a clean CSV.",
+bp:["Never edit raw files","Record licence and collection date"],mk:["Ignoring licence terms","Mixing raw and processed data"],out:"Raw dataset, data dictionary, ingestion script",tip:"Ask AI to generate the data dictionary from df.info() and df.describe()."},
+{t:"EDA & Cleaning",e:"🔍",time:"3–6 days",o:"Understand distributions, quality issues and leakage risks, then build a repeatable cleaning step.",
+tasks:["Profile missing values, outliers and duplicates","Plot target and key feature distributions","Check for leakage and class imbalance","Save a cleaning function or pipeline"],
+tools:[["Jupyter / VS Code","Interactive notebooks for fast exploration."],["ydata-profiling","One-line automated profile report."],["Claude","Interprets plots and suggests cleaning rules; always verify them."]],alt:"Pandas AI, Sweetviz, Polars",
+prompt:"Here is df.describe() and df.isna().mean(): [paste]. List data quality problems, likely leakage columns and a cleaning plan with pandas code.",
+bp:["Split train and test before any fitting step","Log every cleaning decision"],mk:["Imputing using the full dataset","Dropping outliers without checking if they are real"],out:"EDA notebook, cleaned dataset, cleaning code",tip:"Ask AI for hypotheses to test, not conclusions to trust."},
+{t:"Feature Engineering",e:"🧩",time:"2–5 days",o:"Create informative, leak-free features and bundle preprocessing into a single pipeline.",
+tasks:["Encode categorical and scale numeric features","Create domain features (ratios, dates, aggregates)","Build a scikit-learn ColumnTransformer pipeline","Run quick feature importance checks"],
+tools:[["scikit-learn Pipelines","Keeps preprocessing and model together, preventing leakage."],["Featuretools","Auto-generates candidate features from relational data."],["Claude","Brainstorms domain features from your data dictionary."]],alt:"Feature-engine, category_encoders, tsfresh",
+prompt:"Given this data dictionary [paste] and target [target], suggest 10 engineered features, why each may help, and the sklearn code for them.",
+bp:["Fit transformers on training data only","Prefer simple features first"],mk:["Target encoding without cross-validation","Too many features for the sample size"],out:"Feature pipeline, feature list with rationale",tip:"Save the fitted pipeline with joblib so deployment uses identical steps."},
+{t:"Model Training",e:"🤖",time:"3–7 days",o:"Train a baseline, then stronger candidates, tracking every experiment.",
+tasks:["Train baseline (logistic or linear regression)","Train gradient boosting and one more family","Use cross-validation, not a single split","Log runs with MLflow or Weights & Biases"],
+tools:[["scikit-learn / XGBoost","Strong, fast defaults for tabular problems."],["PyTorch","Flexible deep learning when data is images, text or audio."],["MLflow","Tracks parameters, metrics and model artifacts."]],alt:"LightGBM, TensorFlow/Keras, Weights & Biases",
+prompt:"Write a scikit-learn script comparing logistic regression, random forest and XGBoost with 5-fold CV on my pipeline, printing mean and std of [metric].",
+bp:["Always beat the baseline before adding complexity","Fix random seeds"],mk:["Tuning on the test set","Training deep nets on tiny tabular data"],out:"Trained candidates, experiment log, chosen shortlist",tip:"Let AI generate the training boilerplate; spend your time on interpreting results."},
+{t:"Evaluation & Tuning",e:"📊",time:"2–5 days",o:"Prove the model works on unseen data, understand its errors and tune sensibly.",
+tasks:["Evaluate on the held-out test set once","Inspect confusion matrix and error slices","Tune hyperparameters with Optuna or search","Explain predictions with SHAP"],
+tools:[["Optuna","Efficient hyperparameter search with pruning."],["SHAP","Explains which features drive predictions."],["Claude","Helps interpret metrics and design error-analysis slices."]],alt:"scikit-learn GridSearchCV, LIME, Evidently",
+prompt:"My model has these metrics per class: [paste]. Explain weaknesses, suggest error-analysis slices and 3 improvements ranked by expected gain.",
+bp:["Touch the test set once","Report confidence intervals, not just one number"],mk:["Celebrating accuracy on imbalanced data","Ignoring fairness across groups"],out:"Evaluation report, tuned final model, explainability plots",tip:"Automate the report as a notebook that re-runs end to end."},
+{t:"Deployment",e:"🚀",time:"2–5 days",o:"Expose the model through an API or app that others can actually use.",
+tasks:["Save model and pipeline artifact","Build a FastAPI endpoint with input validation","Containerise with Docker","Deploy to Render, Hugging Face Spaces or a cloud VM"],
+tools:[["FastAPI","Fast, typed API with automatic docs."],["Docker","Identical environment everywhere."],["Streamlit / Gradio","Quick demo UI for recruiters and users."]],alt:"Flask, BentoML, AWS SageMaker, Vercel",
+prompt:"Create a FastAPI app that loads model.joblib, validates input with Pydantic, returns prediction and probability, plus a Dockerfile and example curl.",
+bp:["Validate every input","Pin dependency versions"],mk:["Different preprocessing in production","No health-check endpoint"],out:"Live API or app URL, Dockerfile, README",tip:"Ask AI to write tests for the endpoint before you deploy."},
+{t:"Monitoring & MLOps",e:"📡",time:"Ongoing",o:"Detect drift and failures, and automate retraining and testing.",
+tasks:["Log inputs, predictions and latency","Track data and prediction drift","Set up CI with GitHub Actions","Plan a retraining trigger"],
+tools:[["Evidently","Drift and quality reports with little setup."],["GitHub Actions","Automates tests, builds and deploys."],["Grafana / Prometheus","Dashboards and alerts for live services."]],alt:"WhyLabs, Arize, Airflow, Prefect",
+prompt:"Write a GitHub Actions workflow that runs tests, builds my Docker image and deploys on push to main, plus a weekly Evidently drift check script.",
+bp:["Alert on metrics that matter to users","Keep a rollback path"],mk:["Deploy and forget","Retraining without evaluation gates"],out:"Monitoring dashboard, CI/CD pipeline, retraining plan",tip:"Start with one drift metric and one alert, then expand."}
+];
+const TREE={q:"What kind of data do you have?",o:[["Tabular",{q:"Is interpretability critical?",o:[["Yes","Logistic/Linear Regression or a shallow Decision Tree."],["No","Gradient boosting (XGBoost / LightGBM) is the strong default."]]}],["Images or audio",{q:"Do you have more than ~10k labelled samples?",o:[["Yes","Train or fine-tune a CNN in PyTorch."],["No","Use transfer learning (ResNet / EfficientNet)."]]}],["Text",{q:"Classification or generation?",o:[["Classification","TF-IDF + Logistic Regression, then fine-tune a small transformer."],["Generation","Use a pretrained LLM with prompting or fine-tuning."]]}]]};
+const SUM={
+"Workflow Summary":["Frame the problem and metric first","Collect and document raw data","Explore, clean and avoid leakage","Build leak-free feature pipelines","Train baselines then stronger models","Evaluate once on test data, explain errors","Deploy as an API or app","Monitor, retrain and automate"],
+"Recommended AI Stack":["Claude for planning, code and debugging","Python, pandas, scikit-learn, XGBoost, PyTorch","MLflow + DVC for tracking and versioning","FastAPI + Docker + Hugging Face Spaces for deployment","GitHub Actions + Evidently for MLOps"],
+"Learning Resources":["Andrew Ng Machine Learning Specialization","fast.ai Practical Deep Learning","Hands-On Machine Learning (Aurelien Geron)","Made With ML (MLOps course)","Kaggle Learn micro-courses"],
+"Communities":["Kaggle forums and competitions","Hugging Face forums and Discord","MLOps Community","r/MachineLearning and r/learnmachinelearning","Local college AI/ML clubs"],
+"Search Keywords":["end to end machine learning project","sklearn pipeline ColumnTransformer","MLflow experiment tracking tutorial","FastAPI model deployment Docker","data drift monitoring Evidently"],
+"Additional AI Prompts":["Review my ML project README and suggest improvements recruiters would value.","Find possible data leakage in this notebook: [paste].","Convert this notebook into a clean Python package with tests.","Explain this model result to a non-technical manager in 5 sentences."],
+"Future Automation Opportunities":["Auto-generated EDA reports on every new dataset","Scheduled retraining when drift passes a threshold","AI agent that opens pull requests for failing tests","Auto-written model cards and changelogs"]};
+const CMP=[["Option","Setup","Best for","Scale"],["Streamlit / Gradio","Minutes","Demos, portfolios","Low"],["FastAPI + Docker","Hours","Real APIs, apps","High"],["Managed (SageMaker etc.)","Days","Teams, compliance","Very high"]];
+let st={done:{},notes:{},bm:{},theme:""},view="o",path=[];
+try{Object.assign(st,JSON.parse(localStorage.getItem("awa1")||"{}"))}catch(e){}
+const save=()=>{try{localStorage.setItem("awa1",JSON.stringify(st))}catch(e){}};
+const $=s=>document.querySelector(s);
+const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+if(st.theme)document.documentElement.dataset.theme=st.theme;
+const total=S.reduce((a,s)=>a+s.tasks.length,0);
+const frac=i=>S[i].tasks.filter((_,j)=>st.done[i+"-"+j]).length/S[i].tasks.length;
+function prog(){const d=Object.values(st.done).filter(Boolean).length;$("#pb").style.width=(d/total*100)+"%";$("#pt").textContent=d+"/"+total+" tasks"}
+function nav(){$("#nav").innerHTML=[["o","🗺 Overview"],...S.map((s,i)=>[i,(st.bm[i]?"★ ":"")+(i+1)+". "+s.t]),["s","📋 Summary"]].map(([k,l])=>`<button data-v="${k}" class="${String(k)===String(view)?"on":""}">${l}</button>`).join("")}
+function flow(){
+let g="",P=[[20,20],[190,20],[360,20],[530,20],[530,110],[360,110],[190,110],[20,110]];
+P.forEach((p,i)=>{if(i<7){const q=P[i+1];g+=`<path d="M${p[0]+(q[0]>p[0]?140:q[0]<p[0]?0:70)} ${p[1]+(q[1]>p[1]?60:30)} L${q[0]+(q[0]>p[0]?0:q[0]<p[0]?140:70)} ${q[1]+(q[1]>p[1]?0:30)}"/>`}});
+P.forEach((p,i)=>{g+=`<g class="n ${frac(i)==1?"d":""}" data-v="${i}"><rect x="${p[0]}" y="${p[1]}" width="140" height="60" rx="12"/><text x="${p[0]+70}" y="${p[1]+26}" text-anchor="middle">${S[i].e} ${i+1}. ${S[i].t.split(" ")[0]}</text><text x="${p[0]+70}" y="${p[1]+45}" text-anchor="middle" style="font-weight:400;fill:var(--mu)">${Math.round(frac(i)*100)}% · ${S[i].time}</text></g>`});
+const b=S.map((s,i)=>st.bm[i]?`<span class="chip" data-v="${i}">★ ${s.t}</span>`:"").join("")||'<span class="mu">Star a stage to bookmark it.</span>';
+return `<section class="card"><h2>End-to-End ML Project Workflow</h2><p class="mu">Software Development → ML/AI Projects → End-to-End ML (data to deployment). Click any stage.</p><div class="svgw"><svg viewBox="0 0 690 190" width="100%" style="min-width:560px">${g}</svg></div><h3>Bookmarks</h3>${b}</section>
+<section class="card"><h2>Decision tree: choosing a model family</h2><div id="tree">${tree()}</div></section>
+<section class="card"><h2>Deployment comparison</h2><table>${CMP.map((r,i)=>"<tr>"+r.map(c=>i?`<td>${c}</td>`:`<th>${c}</th>`).join("")+"</tr>").join("")}</table></section>`}
+function tree(){let n=TREE;for(const k of path)n=n.o[k][1];
+const crumbs=path.length?`<button data-tr="r">↺ Restart</button>`:"";
+if(typeof n==="string")return `<div class="res">✅ ${n}</div>${crumbs}`;
+return `<p><b>${n.q}</b></p>${n.o.map((o,i)=>`<button data-tr="${i}">${o[0]}</button> `).join("")} ${crumbs}`}
+function stage(i){const s=S[i];
+return `<section class="card"><h2>${s.e} ${i+1}. ${s.t} <button data-b="${i}">${st.bm[i]?"★":"☆"}</button></h2><p class="mu">⏱ ${s.time} · Output: ${s.out}</p>
+<h3>Objectives</h3><p>${s.o}</p><h3>Tasks</h3>${s.tasks.map((t,j)=>`<label class="task"><input type="checkbox" data-t="${i}-${j}" ${st.done[i+"-"+j]?"checked":""}> ${t}</label>`).join("")}
+<h3>Best AI tools and why</h3><div class="grid">${s.tools.map(x=>`<div class="tool"><b>${x[0]}</b><p>${x[1]}</p></div>`).join("")}</div><p><b>Alternatives:</b> ${s.alt}</p>
+<h3>Prompt example</h3><pre>${s.prompt}</pre><button data-c="${i}">Copy prompt</button>
+<div class="grid"><div><h3>Best practices</h3><ul>${s.bp.map(x=>`<li>${x}</li>`).join("")}</ul></div><div><h3>Common mistakes</h3><ul class="bad">${s.mk.map(x=>`<li>${x}</li>`).join("")}</ul></div></div>
+<h3>Efficiency tip</h3><p>💡 ${s.tip}</p><h3>Notes</h3><textarea data-n="${i}" placeholder="Your notes for this stage...">${esc(st.notes[i]||"")}</textarea></section>`}
+function summary(){return Object.entries(SUM).map(([k,v])=>`<section class="card"><h2>${k}</h2><ul>${v.map(x=>`<li>${x}</li>`).join("")}</ul></section>`).join("")}
+function render(){nav();prog();
+$("#main").innerHTML=view==="o"?flow():view==="s"?summary():view==="all"?flow()+S.map((_,i)=>stage(i)).join("")+summary():stage(+view);
+scrollTo({top:0,behavior:"smooth"})}
+document.addEventListener("click",e=>{const t=e.target.closest("[data-v],[data-b],[data-c],[data-tr]");
+if(e.target.closest("#th")){const d=document.documentElement,dark=getComputedStyle(d).colorScheme.includes("dark");st.theme=dark?"light":"dark";d.dataset.theme=st.theme;save();return}
+if(e.target.closest("#pr")){view="all";render();setTimeout(()=>{print();view="o";render()},300);return}
+if(!t)return;const d=t.dataset;
+if(d.v!==undefined){view=d.v;render()}
+else if(d.b!==undefined){st.bm[d.b]=!st.bm[d.b];save();render()}
+else if(d.c!==undefined){try{navigator.clipboard.writeText(S[d.c].prompt)}catch(x){}t.textContent="Copied!";setTimeout(()=>t.textContent="Copy prompt",1200)}
+else if(d.tr!==undefined){d.tr==="r"?path=[]:path.push(+d.tr);$("#tree").innerHTML=tree()}});
+document.addEventListener("change",e=>{const k=e.target.dataset.t;if(k){st.done[k]=e.target.checked;save();prog();nav()}});
+document.addEventListener("input",e=>{const k=e.target.dataset.n;if(k!==undefined){st.notes[k]=e.target.value;save()}});
+render();
+</script></body></html>
