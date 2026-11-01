@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Defend Your Experience</title>
+<style>
+:root{--bg:#f6efe3;--card:#fffaf1;--ink:#2e2118;--mute:#7a6757;--acc:#8b5a2b;--acc2:#b98a5a;--line:#e3d5bf;--good:#4d7a45;--mid:#b9822a;--bad:#a8442f;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1d1611;--card:#2a2018;--ink:#f2e8d8;--mute:#b3a08a;--acc:#d3a06b;--acc2:#a8774a;--line:#44352a;--good:#8cc080;--mid:#e0b25a;--bad:#e8806a}}
+:root[data-theme="dark"]{--bg:#1d1611;--card:#2a2018;--ink:#f2e8d8;--mute:#b3a08a;--acc:#d3a06b;--acc2:#a8774a;--line:#44352a;--good:#8cc080;--mid:#e0b25a;--bad:#e8806a}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Georgia,'Times New Roman',serif}
+button,textarea,input{font:inherit;color:inherit}
+.wrap{max-width:1040px;margin:0 auto;padding:20px 16px 60px}
+header{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+h1{font-size:1.5rem;margin:0}h1 span{color:var(--acc)}
+h2{margin:0 0 8px;font-size:1.25rem}h3{margin:14px 0 6px;font-size:1rem}
+.sub{color:var(--mute);margin:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:14px}
+.btn{background:var(--acc);color:var(--bg);border:0;border-radius:10px;padding:10px 16px;cursor:pointer;font-weight:bold}
+.btn.ghost{background:transparent;color:var(--acc);border:1px solid var(--acc)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.chip{border:1px solid var(--line);border-radius:99px;padding:5px 12px;cursor:pointer;background:transparent;color:var(--ink)}
+.chip.on{background:var(--acc);color:var(--bg);border-color:var(--acc)}
+textarea{width:100%;min-height:120px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;resize:vertical}
+#drop{border:2px dashed var(--acc2);border-radius:12px;padding:16px;text-align:center;color:var(--mute);margin-bottom:10px}
+#drop.over{background:var(--line)}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:12px 0}
+.steps div{border-left:3px solid var(--acc2);padding-left:10px;color:var(--mute);font-size:.92rem}
+.layout{display:grid;grid-template-columns:290px 1fr;gap:14px}
+@media(max-width:760px){.layout{grid-template-columns:1fr}}
+.cl{padding:10px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px;cursor:pointer;background:var(--card)}
+.cl.act{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc)}
+.cl small{color:var(--mute)}
+.bar{height:7px;background:var(--line);border-radius:9px;overflow:hidden;margin-top:6px}.bar i{display:block;height:100%;transition:width .5s}
+.msg{padding:10px 12px;border-radius:10px;margin:8px 0;white-space:pre-wrap}
+.q{background:var(--line)}.a{background:var(--bg);border:1px solid var(--line)}
+.tag{display:inline-block;font-size:.78rem;border-radius:6px;padding:1px 8px;border:1px solid currentColor}
+.good{color:var(--good)}.mid{color:var(--mid)}.bad{color:var(--bad)}
+.err{border:1px solid var(--bad);color:var(--bad);border-radius:10px;padding:10px;margin:8px 0}
+.gauge{font-size:2.6rem;font-weight:bold;color:var(--acc)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+ul{margin:4px 0;padding-left:20px}
+.hide{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Defend <span>Your Experience</span></h1>
+  <div class="row"><button class="btn ghost" id="bHist">History</button><button class="btn ghost" id="bNew">New session</button></div>
+</header>
+<div id="app"></div>
+</div>
+<script>
+(function(){
+var $=function(s){return document.querySelector(s)};
+var app=$('#app');
+var S=load('dye_state')||blank();
+var sample=null,busy=false;
+function blank(){return{view:'setup',goal:'Internship or job interview',aud:'Technical interviewer',fear:'Technical depth',text:'',claims:[],cur:0,id:Date.now()}}
+function load(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function persist(){save('dye_state',S)}
+function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+function col(n){return n>=75?'good':n>=40?'mid':'bad'}
+function label(n){return n>=75?'Well defended':n>=40?'Needs work':'Exposed'}
+function score(c){return c.rounds&&c.rounds.length?c.rounds[c.rounds.length-1].score:null}
+
+async function ai(prompt){
+  if(!sample){sample=await claude.use('sample')}
+  if(!sample)throw{code:'unavailable',message:'Claude is not available in this view. Open the page inside claude.ai.'};
+  var tries=0;
+  while(true){
+    try{return await sample.json(prompt,{cache:false})}
+    catch(e){
+      if(e&&e.code==='rate_limited'&&tries<2){tries++;await new Promise(function(r){setTimeout(r,2500*tries)});continue}
+      throw e;
+    }
+  }
+}
+function errBox(e){
+  var m=e&&e.code==='rate_limited'?'Claude is rate limited right now. Your answer is kept. Wait a moment and press the button again.':
+        e&&e.code==='not_granted'?'Permission to ask Claude was declined. Allow it to continue.':
+        (e&&e.message)||'Something went wrong. Your input is saved; try again.';
+  return el('div','err',m);
+}
+
+/* ---------- views ---------- */
+function render(){
+  app.innerHTML='';
+  if(S.view==='setup')setup();
+  else if(S.view==='defend')defend();
+  else if(S.view==='report')report();
+  else if(S.view==='history')history();
+  persist();
+}
+
+function chips(parent,opts,key){
+  var r=el('div','row');
+  opts.forEach(function(o){
+    var b=el('button','chip'+(S[key]===o?' on':''),o);
+    b.onclick=function(){S[key]=o;render()};
+    r.appendChild(b);
+  });
+  parent.appendChild(r);
+}
+
+function setup(){
+  var c=el('div','card');
+  c.appendChild(el('h2',null,'Every claim you make is a claim someone can challenge.'));
+  c.appendChild(el('p','sub','Paste your resume, project write-ups, or LinkedIn About. An AI skeptic pulls out each claim and cross-examines you on it, using what you say to shape the next question. At the end you get a Defense Report showing what holds up and what doesn’t.'));
+  var st=el('div','steps');
+  ['1. Add your experience','2. Defend each claim under questioning','3. Get your Defense Report'].forEach(function(t){st.appendChild(el('div',null,t))});
+  c.appendChild(st);
+  app.appendChild(c);
+
+  var c2=el('div','card');
+  c2.appendChild(el('h3',null,'Who will you face?'));
+  chips(c2,['Technical interviewer','HR or recruiter','Hiring panel','Mixed'],'aud');
+  c2.appendChild(el('h3',null,'What worries you most?'));
+  chips(c2,['Technical depth','Impact and numbers','My role vs. my team','Leadership roles'],'fear');
+  c2.appendChild(el('h3',null,'Your experience'));
+  var d=el('div',null,null);d.id='drop';d.textContent='Drag and drop a .txt, .md or .json file here, or ';
+  var pick=el('a',null,'browse');pick.href='#pick';pick.style.color='var(--acc)';
+  var fi=el('input');fi.type='file';fi.accept='.txt,.md,.json,.csv,text/*';fi.className='hide';
+  pick.onclick=function(e){e.preventDefault();fi.click()};
+  d.appendChild(pick);d.appendChild(el('div',null,'PDF or Word? Copy the text and paste it below.'));
+  function readF(f){if(!f)return;var r=new FileReader();r.onload=function(){S.text=String(r.result).slice(0,15000);render()};r.readAsText(f)}
+  fi.onchange=function(){readF(fi.files[0])};
+  d.ondragover=function(e){e.preventDefault();d.classList.add('over')};
+  d.ondragleave=function(){d.classList.remove('over')};
+  d.ondrop=function(e){e.preventDefault();d.classList.remove('over');readF(e.dataTransfer.files[0])};
+  c2.appendChild(d);c2.appendChild(fi);
+  var ta=el('textarea');ta.style.minHeight='200px';ta.placeholder='Paste your resume, project descriptions, or bio here…';ta.value=S.text;
+  ta.oninput=function(){S.text=ta.value;persist();go.disabled=S.text.trim().length<80};
+  c2.appendChild(ta);
+  var go=el('button','btn','Extract my claims and begin');go.style.marginTop='10px';go.disabled=S.text.trim().length<80;
+  var out=el('div');
+  go.onclick=async function(){
+    if(busy)return;busy=true;go.disabled=true;go.textContent='Reading your claims…';out.innerHTML='';
+    try{
+      var r=await ai('You are a skeptical hiring interviewer. Audience: '+S.aud+'. The candidate fears being challenged on: '+S.fear+'.\nFrom the text below extract up to 8 distinct, specific claims the candidate makes about themselves (skills, projects, results, roles). Prefer claims a '+S.aud+' would probe. Return ONLY a JSON array of objects: {"claim": short statement in the candidate’s words, "risk": one sentence on why a skeptic would doubt it, "opener": the first sharp, personalised question about this exact claim}.\n\nTEXT:\n'+S.text);
+      if(!Array.isArray(r)||!r.length)throw{message:'No claims found. Add more detail about your projects and results.'};
+      S.claims=r.slice(0,8).map(function(x,i){return{id:i,claim:String(x.claim),risk:String(x.risk||''),opener:String(x.opener),rounds:[],log:[{q:String(x.opener)}],done:false}});
+      S.cur=0;S.view='defend';S.id=Date.now();
+    }catch(e){out.appendChild(errBox(e))}
+    busy=false;render();
+  };
+  c2.appendChild(go);c2.appendChild(out);
+  app.appendChild(c2);
+}
+
+function defend(){
+  var lay=el('div','layout');
+  var side=el('div');
+  var done=S.claims.filter(function(c){return c.done}).length;
+  side.appendChild(el('p','sub',done+' of '+S.claims.length+' claims defended'));
+  S.claims.forEach(function(c,i){
+    var s=score(c);
+    var d=el('div','cl'+(i===S.cur?' act':''));
+    d.appendChild(el('div',null,c.claim));
+    d.appendChild(el('small',null,s==null?'Not challenged yet':label(s)+' · '+s+'/100'));
+    var b=el('div','bar'),f=el('i');f.style.width=(s||0)+'%';f.style.background='var(--'+(s==null?'line':col(s))+')';b.appendChild(f);d.appendChild(b);
+    d.onclick=function(){S.cur=i;render()};
+    side.appendChild(d);
+  });
+  var fin=el('button','btn ghost','Finish and see report');fin.onclick=function(){S.view='report';render()};
+  fin.disabled=!S.claims.some(function(c){return c.rounds.length});
+  side.appendChild(fin);
+  var main=el('div','card');
+  var c=S.claims[S.cur];
+  main.appendChild(el('h2',null,'“'+c.claim+'”'));
+  main.appendChild(el('p','sub','Why a skeptic doubts this: '+c.risk));
+  c.log.forEach(function(m,i){
+    main.appendChild(el('div','msg q','Interviewer: '+m.q));
+    if(m.a!=null){
+      main.appendChild(el('div','msg a','You: '+m.a));
+      var r=c.rounds[i];
+      if(r){
+        var f=el('div','sub');f.appendChild(el('span','tag '+col(r.score),label(r.score)+' '+r.score));
+        f.appendChild(document.createTextNode(' '+r.verdict));
+        main.appendChild(f);
+        if(r.gaps&&r.gaps.length){var u=el('ul');r.gaps.forEach(function(g){u.appendChild(el('li',null,g))});main.appendChild(u)}
+      }
+    }
+  });
+  var out=el('div');
+  if(!c.done){
+    var ta=el('textarea');ta.placeholder='Answer as you would in the room. Be specific: what you built, why, trade-offs, numbers.';
+    main.appendChild(ta);
+    var row=el('div','row');row.style.marginTop='8px';
+    var sb=el('button','btn','Submit answer');
+    var sk=el('button','btn ghost','Mark done / next claim');
+    sb.onclick=async function(){
+      var a=ta.value.trim();if(a.length<10||busy)return;
+      busy=true;sb.disabled=true;sb.textContent='Cross-examining…';out.innerHTML='';
+      var last=c.log[c.log.length-1];
+      var hist=c.log.map(function(m,i){return 'Q: '+m.q+(m.a!=null?'\nA: '+m.a:'')}).join('\n');
+      try{
+        var r=await ai('You are a skeptical '+S.aud+' interviewing a candidate. They fear challenges on: '+S.fear+'.\nCLAIM UNDER TEST: '+c.claim+'\nTRANSCRIPT SO FAR:\n'+hist+'\nA (latest): '+a+'\n\nJudge how well the candidate defended the claim overall so far. Reward specifics, ownership ("I" vs "we"), trade-offs, measurable results. Penalise vagueness. Then, if fewer than 3 answers given and the defense is not yet solid, ask ONE sharp follow-up that targets the weakest point of their latest answer, using their own words. Return ONLY JSON: {"score":0-100,"verdict":"one short sentence","gaps":["up to 3 missing items"],"tip":"how to say it stronger","next":"follow-up question or empty string if finished"}');
+        last.a=a;
+        c.rounds.push({score:Math.max(0,Math.min(100,Math.round(+r.score||0))),verdict:String(r.verdict||''),gaps:(r.gaps||[]).map(String).slice(0,3),tip:String(r.tip||'')});
+        if(r.next&&c.rounds.length<3)c.log.push({q:String(r.next)});else c.done=true;
+      }catch(e){out.appendChild(errBox(e));busy=false;sb.disabled=false;sb.textContent='Try again';return}
+      busy=false;render();
+    };
+    sk.onclick=function(){c.done=true;nextClaim();render()};
+    row.appendChild(sb);row.appendChild(sk);main.appendChild(row);main.appendChild(out);
+  }else{
+    var n=el('button','btn','Next claim');n.onclick=function(){nextClaim();render()};
+    var l=c.rounds.length?c.rounds[c.rounds.length-1]:null;
+    if(l){main.appendChild(el('h3',null,'How to say it stronger'));main.appendChild(el('p',null,l.tip))}
+    main.appendChild(n);
+  }
+  lay.appendChild(side);lay.appendChild(main);app.appendChild(lay);
+}
+function nextClaim(){
+  for(var k=1;k<=S.claims.length;k++){var i=(S.cur+k)%S.claims.length;if(!S.claims[i].done){S.cur=i;return}}
+  S.view='report';
+}
+
+function overall(){
+  var sc=S.claims.map(score).filter(function(x){return x!=null});
+  return sc.length?Math.round(sc.reduce(function(a,b){return a+b},0)/sc.length):0;
+}
+function report(){
+  var o=overall();
+  var c=el('div','card');
+  c.appendChild(el('h2',null,'Defense Report'));
+  c.appendChild(el('div','gauge',o+'/100'));
+  c.appendChild(el('p','sub','Overall defense confidence across '+S.claims.filter(function(x){return x.rounds.length}).length+' challenged claims. Audience: '+S.aud+'.'));
+  app.appendChild(c);
+  var g3=el('div','grid3');
+  [['Well defended',75,101],['Needs work',40,75],['Exposed',0,40]].forEach(function(b){
+    var card=el('div','card');
+    var items=S.claims.filter(function(x){var s=score(x);return s!=null&&s>=b[1]&&s<b[2]});
+    card.appendChild(el('h3',col(b[1]===75?80:b[1]===40?50:10),b[0]+' ('+items.length+')'));
+    if(!items.length)card.appendChild(el('p','sub','Nothing here yet.'));
+    items.forEach(function(x){
+      var s=score(x),l=x.rounds[x.rounds.length-1];
+      card.appendChild(el('div',null,x.claim));
+      var bar=el('div','bar'),f=el('i');f.style.width=s+'%';f.style.background='var(--'+col(s)+')';bar.appendChild(f);card.appendChild(bar);
+      card.appendChild(el('small','sub','Score '+s+(l.gaps.length?' · Missing: '+l.gaps.join('; '):'')));
+      if(l.tip)card.appendChild(el('p','sub','Strengthen: '+l.tip));
+    });
+    g3.appendChild(card);
+  });
+  app.appendChild(g3);
+  var un=S.claims.filter(function(x){return !x.rounds.length});
+  if(un.length){var u=el('div','card');u.appendChild(el('h3',null,'Never challenged ('+un.length+')'));un.forEach(function(x){u.appendChild(el('div','sub',x.claim))});app.appendChild(u)}
+  var r=el('div','row');
+  var sv=el('button','btn','Save to history');sv.onclick=function(){var h=load('dye_hist')||[];h=h.filter(function(x){return x.id!==S.id});h.unshift(JSON.parse(JSON.stringify(S)));save('dye_hist',h.slice(0,15));sv.textContent='Saved'};
+  var ex=el('button','btn ghost','Export report');ex.onclick=exportMd;
+  var bk=el('button','btn ghost','Keep defending');bk.onclick=function(){S.view='defend';render()};
+  r.appendChild(sv);r.appendChild(ex);r.appendChild(bk);app.appendChild(r);
+  app.appendChild(el('div','sub',''));
+  window.__msg=el('p','sub');app.appendChild(window.__msg);
+}
+async function exportMd(){
+  var md='# Defense Report\n\nOverall: '+overall()+'/100 · Audience: '+S.aud+'\n\n';
+  S.claims.forEach(function(x){
+    var s=score(x);md+='## '+x.claim+'\n'+(s==null?'Not challenged.\n\n':'**'+label(s)+' ('+s+'/100)**\n\n'+x.rounds[x.rounds.length-1].verdict+'\n\nMissing: '+x.rounds[x.rounds.length-1].gaps.join('; ')+'\n\nStrengthen: '+x.rounds[x.rounds.length-1].tip+'\n\n')});
+  try{
+    var d=await claude.use('downloads');
+    if(!d)throw 0;
+    await d.save({filename:'defense-report.md',data:md});
+  }catch(e){
+    try{await navigator.clipboard.writeText(md);window.__msg.textContent='Download unavailable here, so the report was copied to your clipboard.'}
+    catch(e2){window.__msg.textContent='Export isn’t available in this view.'}
+  }
+}
+function history(){
+  var h=load('dye_hist')||[];
+  var c=el('div','card');c.appendChild(el('h2',null,'Session history'));
+  if(!h.length)c.appendChild(el('p','sub','No saved sessions yet. Finish a defense and press “Save to history” on the report.'));
+  h.forEach(function(s){
+    var d=el('div','cl');
+    var ov=S.claims;S.claims=s.claims;var o=overall();S.claims=ov;
+    d.appendChild(el('div',null,new Date(s.id).toLocaleString()+' · '+s.aud+' · '+s.claims.length+' claims · '+o+'/100'));
+    d.onclick=function(){S=JSON.parse(JSON.stringify(s));S.view='report';render()};
+    c.appendChild(d);
+  });
+  var b=el('button','btn ghost','Back');b.onclick=function(){S.view=S.claims.length?'report':'setup';render()};
+  c.appendChild(b);app.appendChild(c);
+}
+$('#bHist').onclick=function(){S.view='history';render()};
+$('#bNew').onclick=function(){var t=S.text,a=S.aud,f=S.fear;S=blank();S.text=t;S.aud=a;S.fear=f;render()};
+render();
+})();
+</script>
+</body>
+</html>
